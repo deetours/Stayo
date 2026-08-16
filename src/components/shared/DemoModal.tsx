@@ -11,9 +11,7 @@ const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
   propertyName: z.string().min(2, "Property name is required"),
-  propertyType: z.enum(["hotel", "resort", "homestay", "cabin", "hostel", "camp", "group"], {
-    errorMap: () => ({ message: "Please select a property type" })
-  }),
+  propertyType: z.enum(["hotel", "resort", "homestay", "cabin", "hostel", "camp", "group"]),
   rooms: z.string().min(1, "Number of rooms is required"),
   phone: z.string().optional(),
   painPoint: z.string().min(5, "Please tell us about your most manual process"),
