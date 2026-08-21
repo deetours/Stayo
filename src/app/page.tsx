@@ -2,18 +2,21 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
-import { Problem } from "@/components/sections/Problem";
-import { CommandCentre } from "@/components/sections/CommandCentre";
-import { Agents } from "@/components/sections/Agents";
+import { TheLivingProperty } from "@/components/sections/TheLivingProperty";
+import { TheDay } from "@/components/sections/TheDay";
+import { GuestExperience } from "@/components/sections/GuestExperience";
 import { PropertyTypes } from "@/components/sections/PropertyTypes";
 import { Rollup } from "@/components/sections/Rollup";
-import { Bridge } from "@/components/sections/Bridge";
 import { Pricing } from "@/components/sections/Pricing";
 import { FinalCTA } from "@/components/sections/FinalCTA";
 import { DemoModal } from "@/components/shared/DemoModal";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
   useEffect(() => {
@@ -27,15 +30,17 @@ export default function Home() {
       touchMultiplier: 2,
     });
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    lenis.on("scroll", ScrollTrigger.update);
 
-    requestAnimationFrame(raf);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
       lenis.destroy();
+      gsap.ticker.remove(lenis.raf);
     };
   }, []);
 
@@ -45,12 +50,11 @@ export default function Home() {
       
       <div className="flex-1">
         <Hero />
-        <Problem />
-        <CommandCentre />
-        <Agents />
-        <PropertyTypes />
+        <TheLivingProperty />
+        <TheDay />
+        <GuestExperience />
         <Rollup />
-        <Bridge />
+        <PropertyTypes />
         <Pricing />
         <FinalCTA />
       </div>

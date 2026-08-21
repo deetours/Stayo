@@ -13,7 +13,7 @@ const plans = [
       "Unified Calendar & Booking Engine",
       "WhatsApp Guest Messaging",
       "Basic Room Assignment",
-      "1 AI Agent (Reservation)",
+      "StayO Intelligence (Lite)",
     ],
     highlighted: false,
   },
@@ -25,7 +25,7 @@ const plans = [
       "Everything in Starter",
       "Multi-Property Rollup",
       "Automated Housekeeping Workflows",
-      "Full AI Agent Roster",
+      "StayO Intelligence (Full)",
       "Revenue & Pricing Recommendations",
     ],
     highlighted: true,
@@ -47,13 +47,13 @@ const plans = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="w-full bg-background py-32 px-6 md:px-12">
+    <section id="pricing" className="w-full bg-background py-32 px-6 md:px-12 border-t border-border/50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground mb-4">
+          <h2 className="font-display text-4xl md:text-5xl font-normal tracking-tight text-foreground mb-4">
             Simple, scale-friendly pricing.
           </h2>
-          <p className="text-lg text-foreground/60 max-w-2xl mx-auto">
+          <p className="text-lg text-foreground/60 max-w-2xl mx-auto font-light">
             Contact us for a tailored quote based on your property size and specific needs.
           </p>
         </div>
