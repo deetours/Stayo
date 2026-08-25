@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { durations, eases } from '@/lib/motion';
+import React from 'react';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 export interface TabItem {
   id: string;
@@ -36,129 +34,85 @@ export function DetailDrawer({
   children,
   footerActions,
 }: DetailDrawerProps) {
-  // Handle Esc key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  // Lock body scroll when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: durations.standard, ease: eases.standard }}
-            onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-xs"
-          />
-
-          {/* Drawer Panel */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{
-              duration: durations.standard,
-              ease: eases.decelerate,
-            }}
-            className="relative z-10 w-full md:w-[60%] max-w-4xl h-full bg-surface border-l border-border shadow-[var(--shadow-e3)] flex flex-col overflow-hidden"
-          >
-            {/* Header */}
-            <div className="sticky top-0 z-20 bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-heading-md font-semibold text-foreground tracking-tight">
-                      {title}
-                    </h3>
-                    {badge}
-                  </div>
-                  {subtitle && (
-                    <p className="text-body-sm text-muted-foreground mt-0.5">{subtitle}</p>
-                  )}
-                </div>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent
+        side="right"
+        showCloseButton={false}
+        className="w-full md:w-[60%] md:max-w-4xl flex flex-col overflow-hidden p-0"
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-20 bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <SheetTitle>{title}</SheetTitle>
+                {badge}
               </div>
-
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
-                aria-label="Close drawer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {subtitle ? (
+                <SheetDescription className="mt-0.5">{subtitle}</SheetDescription>
+              ) : (
+                <SheetDescription className="sr-only">{title} details</SheetDescription>
+              )}
             </div>
+          </div>
 
-            {/* Tab Bar (Sub-header) */}
-            {tabs && tabs.length > 0 && (
-              <div className="bg-surface border-b border-border px-6 flex items-center gap-6 overflow-x-auto">
-                {tabs.map((tab) => {
-                  const isActive = tab.id === activeTab;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => onTabChange?.(tab.id)}
-                      className={`relative py-3 text-body-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
-                        isActive ? 'text-accent' : 'text-muted-foreground hover:text-foreground'
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
+            aria-label="Close drawer"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Tab Bar (Sub-header) */}
+        {tabs && tabs.length > 0 && (
+          <div className="bg-surface border-b border-border px-6 flex items-center gap-6 overflow-x-auto">
+            {tabs.map((tab) => {
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onTabChange?.(tab.id)}
+                  className={`relative py-3 text-body-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    isActive ? 'text-accent' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span
+                      className={`font-mono text-caption px-1.5 py-0.5 rounded-full ${
+                        isActive
+                          ? 'bg-accent/15 text-accent'
+                          : 'bg-surface-2 text-muted-foreground'
                       }`}
                     >
-                      <span>{tab.label}</span>
-                      {tab.count !== undefined && (
-                        <span
-                          className={`font-mono text-caption px-1.5 py-0.5 rounded-full ${
-                            isActive
-                              ? 'bg-accent/15 text-accent'
-                              : 'bg-surface-2 text-muted-foreground'
-                          }`}
-                        >
-                          {tab.count}
-                        </span>
-                      )}
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeDrawerTab"
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent"
-                          transition={{ duration: durations.fast, ease: eases.standard }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                      {tab.count}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-all duration-150" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-            {/* Content Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">{children}</div>
+        {/* Content Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">{children}</div>
 
-            {/* Footer Actions */}
-            {footerActions && (
-              <div className="sticky bottom-0 z-20 bg-surface/95 backdrop-blur-xs border-t border-border px-6 py-3.5 flex items-center justify-end gap-3 shadow-[var(--shadow-e1)]">
-                {footerActions}
-              </div>
-            )}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+        {/* Footer Actions */}
+        {footerActions && (
+          <div className="sticky bottom-0 z-20 bg-surface/95 backdrop-blur-xs border-t border-border px-6 py-3.5 flex items-center justify-end gap-3 shadow-[var(--shadow-e1)]">
+            {footerActions}
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }

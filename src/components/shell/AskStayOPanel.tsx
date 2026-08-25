@@ -1,17 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { AgentPanel, ChatMessage } from '@/components/patterns/AgentPanel';
-import { durations, eases } from '@/lib/motion';
 import { X, Sparkles } from 'lucide-react';
 
 interface AskStayOPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function AskStayOPanel({ isOpen, onClose }: AskStayOPanelProps) {
+export function AskStayOPanel({ open, onOpenChange }: AskStayOPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'ask-1',
@@ -49,53 +48,34 @@ export function AskStayOPanel({ isOpen, onClose }: AskStayOPanelProps) {
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-background/60 backdrop-blur-xs"
-          />
-
-          {/* Side Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: durations.standard, ease: eases.decelerate }}
-            className="relative z-10 w-full md:w-[420px] h-full bg-surface border-l border-border shadow-[var(--shadow-e3)] flex flex-col"
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" showCloseButton={false} className="flex flex-col p-0">
+        <div className="p-3.5 bg-surface border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-accent/20 text-accent flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5" />
+            </div>
+            <SheetTitle className="font-semibold text-body-sm text-foreground">Ask StayO AI</SheetTitle>
+            <SheetDescription className="sr-only">Chat with the StayO operational co-pilot</SheetDescription>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2"
           >
-            <div className="p-3.5 bg-surface border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-accent/20 text-accent flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5" />
-                </div>
-                <span className="font-semibold text-body-sm text-foreground">Ask StayO AI</span>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-hidden p-3">
-              <AgentPanel
-                title="Context Co-pilot"
-                agentName="StayO Intelligence"
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                isThinking={isThinking}
-              />
-            </div>
-          </motion.div>
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      )}
-    </AnimatePresence>
+
+        <div className="flex-1 overflow-hidden p-3">
+          <AgentPanel
+            title="Context Co-pilot"
+            agentName="StayO Intelligence"
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isThinking={isThinking}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

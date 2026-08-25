@@ -109,7 +109,7 @@ export function TheDay() {
           </div>
 
           {/* Morning: Reservations */}
-          <div ref={event1Ref} className="relative mb-32 pl-10 md:pl-0 md:w-full flex md:justify-end">
+          <div ref={event1Ref} className="relative mb-32 pl-10 md:pl-0 md:w-full flex md:justify-start">
             <div className="absolute left-[-7px] md:left-1/2 md:-translate-x-1/2 top-1.5 w-3 h-3 rounded-full bg-accent border-2 border-background z-10 shadow-[0_0_10px_rgba(217,119,6,0.5)]" />
             <div className="md:w-[45%] md:pr-16 md:text-right">
               <div className="text-xs font-mono text-accent uppercase tracking-widest mb-3">Morning</div>
@@ -149,7 +149,7 @@ export function TheDay() {
           </div>
 
           {/* Evening: Revenue */}
-          <div ref={event3Ref} className="relative pl-10 md:pl-0 md:w-full flex md:justify-end">
+          <div ref={event3Ref} className="relative pl-10 md:pl-0 md:w-full flex md:justify-start">
             <div className="absolute left-[-7px] md:left-1/2 md:-translate-x-1/2 top-1.5 w-3 h-3 rounded-full bg-accent border-2 border-background z-10 shadow-[0_0_10px_rgba(217,119,6,0.5)]" />
             <div className="md:w-[45%] md:pr-16 md:text-right">
               <div className="text-xs font-mono text-accent uppercase tracking-widest mb-3">Evening</div>

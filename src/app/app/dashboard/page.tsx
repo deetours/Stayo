@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   TrendingUp,
@@ -18,6 +18,9 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
+import { roomStatusCounts, TOTAL_ROOMS, room204Alert } from '@/lib/mock-data';
+import { gsap, useGSAP, Flip } from '@/lib/gsap';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface NeedsAttentionItem {
   id: string;
@@ -59,7 +62,7 @@ const initialNeedsAttention: NeedsAttentionItem[] = [
   },
   {
     id: 'na-4',
-    title: '1 maintenance emergency — Room 204 (Bathroom leak)',
+    title: `1 ${room204Alert.title}`,
     count: 1,
     category: 'Maintenance',
     urgency: 'crit',
@@ -83,7 +86,14 @@ export default function DashboardPage() {
   // Optimistic Needs Attention feed
   const { state: needsAttention, performAction } = useOptimisticAction(initialNeedsAttention);
 
+  const attentionListRef = useRef<HTMLDivElement>(null);
+  const attentionFlipStateRef = useRef<Flip.FlipState | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+
   const handleDismissAttention = (id: string) => {
+    if (!prefersReducedMotion && attentionListRef.current) {
+      attentionFlipStateRef.current = Flip.getState(attentionListRef.current.querySelectorAll('[data-flip-id]'));
+    }
     performAction(
       (prev) => prev.filter((item) => item.id !== id),
       async () => {
@@ -92,6 +102,23 @@ export default function DashboardPage() {
       }
     );
   };
+
+  // The dismissed row leaves and the remaining rows resettle upward,
+  // giving useOptimisticAction's instant state update a visual payoff.
+  useGSAP(
+    () => {
+      if (attentionFlipStateRef.current) {
+        Flip.from(attentionFlipStateRef.current, {
+          duration: 0.35,
+          ease: 'power2.inOut',
+          absolute: true,
+          onLeave: (els) => gsap.to(els, { opacity: 0, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0, duration: 0.25 }),
+        });
+        attentionFlipStateRef.current = null;
+      }
+    },
+    { dependencies: [needsAttention], scope: attentionListRef }
+  );
 
   return (
     <div className="space-y-8 font-sans">
@@ -125,9 +152,9 @@ export default function DashboardPage() {
             Occupancy
           </div>
           <div className="font-mono text-display-md font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
-            72%
+            {Math.round((roomStatusCounts.occupied / TOTAL_ROOMS) * 100)}%
           </div>
-          <div className="text-caption text-status-ok font-mono mt-0.5">18 of 25 Rooms</div>
+          <div className="text-caption text-status-ok font-mono mt-0.5">{roomStatusCounts.occupied} of {TOTAL_ROOMS} Rooms</div>
         </Link>
 
         <Link
@@ -203,7 +230,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className="space-y-2">
+          <div ref={attentionListRef} className="space-y-2">
             {needsAttention.map((item) => {
               const urgencyDot =
                 item.urgency === 'crit'
@@ -215,6 +242,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={item.id}
+                  data-flip-id={item.id}
                   className="p-3.5 rounded-md bg-surface border border-border flex items-center justify-between gap-3 hover:border-muted-foreground/40 transition-colors shadow-e0"
                 >
                   <div className="flex items-center gap-3 truncate">
@@ -264,7 +292,7 @@ export default function DashboardPage() {
                   <span className="font-medium text-foreground">Elena Rostova</span>
                   <span className="font-mono text-muted-foreground text-caption">Room 204</span>
                 </div>
-                <span className="text-caption text-status-warn font-medium">Room Being Cleaned</span>
+                <span className="text-caption text-status-crit font-medium">Maintenance Delay</span>
               </div>
 
               <div className="p-3 flex items-center justify-between text-body-sm">
@@ -301,7 +329,7 @@ export default function DashboardPage() {
           <div className="p-4 bg-surface border border-border rounded-md space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-body-sm font-semibold text-foreground">
-                Live Room Status
+                Room Status
               </span>
               <Link href="/app/rooms" className="text-caption text-accent hover:underline">
                 Manage Rooms →
@@ -310,23 +338,23 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-5 gap-2 text-center">
               <Link href="/app/rooms?status=available" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
-                <div className="font-mono font-bold text-body-lg text-status-ok">6</div>
+                <div className="font-mono font-bold text-body-lg text-status-ok">{roomStatusCounts.available}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Available</div>
               </Link>
               <Link href="/app/rooms?status=occupied" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
-                <div className="font-mono font-bold text-body-lg text-foreground">14</div>
+                <div className="font-mono font-bold text-body-lg text-foreground">{roomStatusCounts.occupied}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Occupied</div>
               </Link>
               <Link href="/app/rooms?status=dirty" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
-                <div className="font-mono font-bold text-body-lg text-status-warn">3</div>
+                <div className="font-mono font-bold text-body-lg text-status-warn">{roomStatusCounts.dirty}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Dirty</div>
               </Link>
               <Link href="/app/rooms?status=cleaning" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
-                <div className="font-mono font-bold text-body-lg text-status-info">2</div>
+                <div className="font-mono font-bold text-body-lg text-status-info">{roomStatusCounts.cleaning}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Cleaning</div>
               </Link>
               <Link href="/app/rooms?status=maintenance" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
-                <div className="font-mono font-bold text-body-lg text-status-crit">1</div>
+                <div className="font-mono font-bold text-body-lg text-status-crit">{roomStatusCounts.blocked}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Blocked</div>
               </Link>
             </div>
@@ -374,7 +402,7 @@ export default function DashboardPage() {
               <span className="text-body-sm font-semibold text-foreground">
                 Recent Operations Feed
               </span>
-              <span className="text-caption font-mono text-muted-foreground">Live</span>
+              <span className="text-caption font-mono text-muted-foreground">Recent</span>
             </div>
 
             <div className="space-y-2.5 text-body-sm">

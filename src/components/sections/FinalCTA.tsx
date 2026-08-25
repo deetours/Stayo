@@ -1,9 +1,18 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { MagneticButton } from "@/components/shared/MagneticButton";
+import { setPreviewSession } from "@/lib/session";
 
 export function FinalCTA() {
+  const router = useRouter();
+
+  const enterPreview = () => {
+    setPreviewSession();
+    router.push("/app/dashboard");
+  };
+
   return (
     <section className="w-full bg-surface py-32 px-6 border-t border-border relative overflow-hidden">
       {/* Background glow */}
@@ -19,21 +28,19 @@ export function FinalCTA() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <MagneticButton 
+          <MagneticButton
             size="lg"
             className="font-semibold w-full sm:w-auto"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent("open-demo-modal"));
-            }}
+            onClick={() => router.push("/register")}
           >
-            Book a Demo
+            Get Started
           </MagneticButton>
-          <a 
-            href="/app/dashboard"
-            className="px-8 py-3 rounded-full border border-border/50 text-foreground/80 hover:text-foreground hover:bg-surface-2 transition-colors text-sm font-medium w-full sm:w-auto"
+          <button
+            onClick={enterPreview}
+            className="px-8 py-3 rounded-full border border-border/50 text-foreground/80 hover:text-foreground hover:bg-surface-2 transition-colors text-sm font-medium w-full sm:w-auto cursor-pointer"
           >
-            See the Dashboard
-          </a>
+            See a live preview
+          </button>
         </div>
       </div>
     </section>

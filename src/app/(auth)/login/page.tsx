@@ -4,6 +4,19 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { setDevSession } from '@/lib/session';
+import { getVerificationStatus } from '@/lib/verification';
+
+// DEV-only: a browser holding a draft that hasn't been approved yet gets
+// routed back to its verification status instead of straight into the app.
+// A fresh login (no local draft) keeps today's exact behavior.
+function getLoginRedirect(): string {
+  const status = getVerificationStatus();
+  if (status === 'under_review' || status === 'action_required' || status === 'rejected') {
+    return '/verification-status';
+  }
+  return '/app/dashboard';
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,8 +66,8 @@ export default function LoginPage() {
         setMagicSent(true);
         setCooldown(60);
       } else {
-        // Redirect to main command centre
-        router.push('/app/dashboard');
+        setDevSession();
+        router.push(getLoginRedirect());
       }
     }, 800);
   };
@@ -221,7 +234,10 @@ export default function LoginPage() {
       {/* Google SSO button */}
       <button
         type="button"
-        onClick={() => router.push('/app/dashboard')}
+        onClick={() => {
+          setDevSession();
+          router.push(getLoginRedirect());
+        }}
         className="w-full flex items-center justify-center gap-3 py-2.5 rounded-sm bg-surface-2 border border-border text-body-md font-medium text-foreground hover:bg-border transition-colors cursor-pointer"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -245,11 +261,11 @@ export default function LoginPage() {
         <span>Google Workspace SSO</span>
       </button>
 
-      {/* Onboarding Link */}
+      {/* Registration Link */}
       <div className="text-center pt-2 text-body-sm text-muted-foreground">
-        Setting up a new property?{' '}
-        <Link href="/onboarding" className="text-accent hover:underline font-medium">
-          Start property setup
+        New to StayO?{' '}
+        <Link href="/register" className="text-accent hover:underline font-medium">
+          Create your account
         </Link>
       </div>
     </div>

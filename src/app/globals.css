@@ -20,6 +20,13 @@
   --color-status-crit: #ef4444;
   --color-status-info: #3b82f6;
 
+  --color-muted: #211f1d;
+  --color-muted-foreground: #8f8a86;
+  --color-input: #292624;
+  --color-ring: #d97706;
+  --color-popover: #171514;
+  --color-popover-foreground: #fafaf9;
+
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
   --font-display: var(--font-playfair);

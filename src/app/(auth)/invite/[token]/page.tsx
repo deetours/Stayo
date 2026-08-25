@@ -64,7 +64,7 @@ export default function InviteAcceptancePage() {
             <ul className="space-y-2 text-body-sm text-muted-foreground">
               {invite.permissions.map((p, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-accent mt-0.5">ï¿½</span>
+                  <span className="text-accent mt-0.5">•</span>
                   <span>{p}</span>
                 </li>
               ))}

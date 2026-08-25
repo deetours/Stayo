@@ -12,6 +12,8 @@ import {
   Layers,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { hasDevSession, hasPreviewSession } from '@/lib/session';
 
 interface AppTopBarProps {
   onOpenCmdK: () => void;
@@ -29,6 +31,11 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
   const [activeProperty, setActiveProperty] = useState(mockProperties[0]);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [isPreviewOnly, setIsPreviewOnly] = useState(false);
+
+  useEffect(() => {
+    setIsPreviewOnly(hasPreviewSession() && !hasDevSession());
+  }, []);
 
   const handleSelectProperty = (prop: typeof mockProperties[0]) => {
     setActiveProperty(prop);
@@ -45,6 +52,14 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
 
   return (
     <>
+      {isPreviewOnly && (
+        <div className="bg-accent/15 border-b border-accent/30 text-accent px-4 py-1.5 flex items-center justify-center gap-2 text-center text-body-sm font-medium shrink-0">
+          <span>You&apos;re viewing a live preview — sign up to save your property&apos;s data.</span>
+          <Link href="/register" className="underline hover:no-underline font-semibold">
+            Register
+          </Link>
+        </div>
+      )}
       <header className="h-14 bg-surface border-b border-border px-4 flex items-center justify-between shrink-0 z-20">
         {/* Left: Property Switcher */}
         <div className="relative">

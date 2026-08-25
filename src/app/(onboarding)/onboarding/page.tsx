@@ -42,7 +42,7 @@ export default function OnboardingPage() {
   // Form State
   const [propertyName, setPropertyName] = useState('Off The Trail — Dalhousie');
   const [propertyType, setPropertyType] = useState('Boutique Resort');
-  const [currency, setCurrency] = useState('INR (?)');
+  const [currency, setCurrency] = useState('INR (₹)');
 
   const [roomTypes, setRoomTypes] = useState([
     { id: '1', name: 'Deluxe Pine Suite', baseRate: 8500, capacity: 2 },
@@ -233,7 +233,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setCurrency(e.target.value)}
                       className="w-full bg-surface border border-border rounded-sm px-3.5 py-2.5 text-body-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent cursor-pointer"
                     >
-                      <option>INR (?)</option>
+                      <option>INR (₹)</option>
                       <option>USD ($)</option>
                       <option>EUR (€)</option>
                       <option>GBP (£)</option>
@@ -451,7 +451,7 @@ export default function OnboardingPage() {
                         : 'bg-surface-2 border border-border text-foreground hover:bg-border'
                     }`}
                   >
-                    {whatsappConnected ? '? Connected' : 'Connect'}
+                    {whatsappConnected ? '✓ Connected' : 'Connect'}
                   </button>
                 </div>
 
@@ -475,7 +475,7 @@ export default function OnboardingPage() {
                         : 'bg-surface-2 border border-border text-foreground hover:bg-border'
                     }`}
                   >
-                    {bookingDotComConnected ? '? Connected' : 'Connect'}
+                    {bookingDotComConnected ? '✓ Connected' : 'Connect'}
                   </button>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
+import { mockHousekeepingTasks } from '@/lib/mock-data';
 import {
   LayoutDashboard,
   Calendar,
@@ -55,7 +56,7 @@ const navGroups: NavGroup[] = [
   {
     groupName: 'Operations',
     items: [
-      { label: 'Front Desk', href: '/app/front-desk', icon: ConciergeBell, badge: '3' },
+      { label: 'Front Desk', href: '/app/front-desk', icon: ConciergeBell },
       { label: 'Reservations', href: '/app/reservations', icon: BookOpen, built: true },
       { label: 'Guests', href: '/app/guests', icon: Users },
     ],
@@ -64,14 +65,14 @@ const navGroups: NavGroup[] = [
     groupName: 'Property',
     items: [
       { label: 'Rooms', href: '/app/rooms', icon: BedDouble, built: true },
-      { label: 'Housekeeping', href: '/app/housekeeping', icon: Sparkles, badge: '5', built: true },
-      { label: 'Maintenance', href: '/app/maintenance', icon: Wrench, badge: '1' },
+      { label: 'Housekeeping', href: '/app/housekeeping', icon: Sparkles, badge: String(mockHousekeepingTasks.length), built: true },
+      { label: 'Maintenance', href: '/app/maintenance', icon: Wrench },
     ],
   },
   {
     groupName: 'Guest Experience',
     items: [
-      { label: 'Communications', href: '/app/communications', icon: MessageSquare, badge: '2' },
+      { label: 'Communications', href: '/app/communications', icon: MessageSquare },
       { label: 'Service Requests', href: '/app/service-requests', icon: ClipboardList },
       { label: 'Restaurant', href: '/app/restaurant', icon: UtensilsCrossed },
       { label: 'Experiences', href: '/app/experiences', icon: Compass },

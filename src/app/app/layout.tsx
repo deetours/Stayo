@@ -32,8 +32,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Global Modals & Panels */}
-      <CommandPalette isOpen={cmdKOpen} onClose={() => setCmdKOpen(false)} />
-      <AskStayOPanel isOpen={askStayOOpen} onClose={() => setAskStayOOpen(false)} />
+      <CommandPalette open={cmdKOpen} onOpenChange={setCmdKOpen} />
+      <AskStayOPanel open={askStayOOpen} onOpenChange={setAskStayOOpen} />
     </div>
   );
 }

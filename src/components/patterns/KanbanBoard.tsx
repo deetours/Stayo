@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MoreVertical, ChevronRight, Check } from 'lucide-react';
 import { BoardSkeleton } from './StateContainers';
+import { gsap, useGSAP, Flip } from '@/lib/gsap';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 export interface KanbanItem {
   id: string;
@@ -45,6 +47,31 @@ export function KanbanBoard({
   const [dragOverColId, setDragOverColId] = useState<string | null>(null);
   const [advanceMobileItemId, setAdvanceMobileItemId] = useState<string | null>(null);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const flipStateRef = useRef<Flip.FlipState | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+
+  // Cards move between columns (different DOM subtrees) on every status
+  // change, so React unmounts/remounts them rather than moving one node —
+  // Flip.from() re-matches the "before" state to the new elements via
+  // data-flip-id and animates the reparent instead of letting it snap.
+  // Must run before the isLoading early return — hooks can't be conditional.
+  useGSAP(
+    () => {
+      if (flipStateRef.current) {
+        Flip.from(flipStateRef.current, {
+          duration: 0.4,
+          ease: 'power2.inOut',
+          absolute: true,
+          onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.3 }),
+          onLeave: (els) => gsap.to(els, { opacity: 0, scale: 0.92, duration: 0.2 }),
+        });
+        flipStateRef.current = null;
+      }
+    },
+    { dependencies: [items], scope: containerRef }
+  );
+
   if (isLoading) {
     return <BoardSkeleton columns={columns.length} />;
   }
@@ -64,6 +91,9 @@ export function KanbanBoard({
 
   const handleDrop = (colId: string) => {
     if (draggedItemId) {
+      if (!prefersReducedMotion && containerRef.current) {
+        flipStateRef.current = Flip.getState(containerRef.current.querySelectorAll('[data-flip-id]'));
+      }
       onItemMove(draggedItemId, colId);
     }
     setDraggedItemId(null);
@@ -84,7 +114,7 @@ export function KanbanBoard({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr gap-4 w-full overflow-x-auto pb-4">
+    <div ref={containerRef} className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr gap-4 w-full overflow-x-auto pb-4">
       {columns.map((col) => {
         const colItems = items.filter((item) => item.status === col.id);
         const isOver = dragOverColId === col.id;
@@ -115,7 +145,7 @@ export function KanbanBoard({
             <div className="flex-1 p-2.5 space-y-2.5 min-h-[350px]">
               {colItems.length === 0 ? (
                 <div className="h-full flex items-center justify-center p-6 text-center text-muted-foreground/60 text-body-sm italic border border-dashed border-border/50 rounded-md">
-                  All caught up ?
+                  All caught up ✓
                 </div>
               ) : (
                 colItems.map((item) => {
@@ -124,6 +154,7 @@ export function KanbanBoard({
                   return (
                     <div
                       key={item.id}
+                      data-flip-id={item.id}
                       draggable
                       onDragStart={() => handleDragStart(item.id)}
                       onClick={() => onItemClick?.(item)}

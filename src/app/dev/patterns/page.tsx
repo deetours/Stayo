@@ -8,17 +8,7 @@ import { AgentPanel, ChatMessage } from '@/components/patterns/AgentPanel';
 import { ApprovalFlow, ApprovalItem } from '@/components/patterns/ApprovalFlow';
 import { EmptyState, TableSkeleton, BoardSkeleton, ErrorState } from '@/components/patterns/StateContainers';
 import { Sliders, RefreshCw, Layers, Table as TableIcon, Layout, Bot, CheckCircle } from 'lucide-react';
-
-interface MockReservation {
-  id: string;
-  guestName: string;
-  roomNumber: string;
-  checkIn: string;
-  checkOut: string;
-  status: 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
-  channel: 'Direct' | 'Booking.com' | 'WhatsApp' | 'Airbnb';
-  amount: string;
-}
+import { mockReservations, mockHousekeepingTasks, MockReservation } from '@/lib/mock-data';
 
 export default function PatternsDevPage() {
   const [activeSection, setActiveSection] = useState<'table' | 'board' | 'drawer' | 'agent' | 'approval' | 'states'>('table');
@@ -33,19 +23,13 @@ export default function PatternsDevPage() {
   const [drawerTab, setDrawerTab] = useState('overview');
 
   // Seed Data for Table
-  const rawReservations: MockReservation[] = [
-    { id: 'RES-8921', guestName: 'Aarav Sharma', roomNumber: '102', checkIn: 'Today', checkOut: '24 Aug', status: 'checked-in', channel: 'Direct', amount: '?14,200' },
-    { id: 'RES-8922', guestName: 'Elena Rostova', roomNumber: '204', checkIn: 'Today', checkOut: '23 Aug', status: 'confirmed', channel: 'Booking.com', amount: '?22,500' },
-    { id: 'RES-8923', guestName: 'Vikram Mehta', roomNumber: '301', checkIn: 'Tomorrow', checkOut: '26 Aug', status: 'confirmed', channel: 'WhatsApp', amount: '?18,000' },
-    { id: 'RES-8924', guestName: 'Sarah Jenkins', roomNumber: '105', checkIn: '22 Aug', checkOut: '25 Aug', status: 'checked-out', channel: 'Airbnb', amount: '?12,400' },
-    { id: 'RES-8925', guestName: 'Rohan Gupta', roomNumber: '208', checkIn: '23 Aug', checkOut: '27 Aug', status: 'cancelled', channel: 'Direct', amount: '?31,000' },
-  ];
+  const rawReservations: MockReservation[] = mockReservations;
 
   const columns: Column<MockReservation>[] = [
     { key: 'id', header: 'ID', sortable: true, render: (r) => <span className="font-mono text-muted-foreground">{r.id}</span> },
     { key: 'guestName', header: 'Guest', sortable: true, render: (r) => <span className="font-medium text-foreground">{r.guestName}</span> },
     { key: 'roomNumber', header: 'Room', sortable: true, render: (r) => <span className="font-mono font-medium px-2 py-0.5 rounded-sm bg-surface-2 border border-border">{r.roomNumber}</span> },
-    { key: 'dates', header: 'Stay Dates', render: (r) => <span className="text-muted-foreground">{r.checkIn} ? {r.checkOut}</span> },
+    { key: 'dates', header: 'Stay Dates', render: (r) => <span className="text-muted-foreground">{r.checkIn} – {r.checkOut}</span> },
     {
       key: 'status',
       header: 'Status',
@@ -83,12 +67,17 @@ export default function PatternsDevPage() {
     { id: 'ready', title: 'Ready' },
   ];
 
-  const [kanbanItems, setKanbanItems] = useState<KanbanItem[]>([
-    { id: 'k-101', title: 'Room 101 · Deluxe Pine', subtitle: 'Departure at 11:00 AM', status: 'dirty', priority: 'urgent', assignee: { name: 'Sunita D.', initials: 'SD' }, meta: 'Next: 2:00 PM' },
-    { id: 'k-102', title: 'Room 102 · Forest Suite', subtitle: 'Stayover refresh', status: 'cleaning', priority: 'normal', assignee: { name: 'Manoj K.', initials: 'MK' } },
-    { id: 'k-204', title: 'Room 204 · Valley Villa', subtitle: 'VIP Arrival (Aarav Sharma)', status: 'inspected', priority: 'high', assignee: { name: 'Sunita D.', initials: 'SD' }, meta: 'VIP' },
-    { id: 'k-301', title: 'Room 301 · Attic Loft', subtitle: 'Ready for check-in', status: 'ready', priority: 'normal', assignee: { name: 'Rahul V.', initials: 'RV' } },
-  ]);
+  const [kanbanItems, setKanbanItems] = useState<KanbanItem[]>(
+    mockHousekeepingTasks.map((t) => ({
+      id: t.id,
+      title: t.roomLabel,
+      subtitle: t.subtitle,
+      status: t.status,
+      priority: t.priority,
+      assignee: t.assignee,
+      meta: t.meta,
+    }))
+  );
 
   // Seed Data for Agent Panel
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -101,11 +90,11 @@ export default function PatternsDevPage() {
     {
       id: 'm-2',
       sender: 'agent',
-      text: 'Occupancy is pacing at 88% for 22–24 Aug, 15% higher than normal. Current rate is ?8,500.',
+      text: 'Occupancy is pacing at 88% for 22–24 Aug, 15% higher than normal. Current rate is ₹8,500.',
       timestamp: '10:43 AM',
       structuredData: [
         { label: 'Current Pace', value: '88%', subtext: '+15% vs 30d avg' },
-        { label: 'Competitor Avg', value: '?10,400', subtext: '3 comp hotels sold out' },
+        { label: 'Competitor Avg', value: '₹10,400', subtext: '3 comp hotels sold out' },
       ],
       proposedAction: {
         id: 'act-901',
@@ -113,9 +102,9 @@ export default function PatternsDevPage() {
         title: 'Increase Pine Suite rate for 22–24 Aug',
         description: 'Adjust weekend base rate to capture peak demand window.',
         details: {
-          'Current Rate': '?8,500/night',
-          'Suggested Rate': '?10,200/night',
-          'Projected Gain': '+?24,000 across 4 rooms',
+          'Current Rate': '₹8,500/night',
+          'Suggested Rate': '₹10,200/night',
+          'Projected Gain': '+₹24,000 across 4 rooms',
         },
         status: 'pending',
       },
@@ -132,11 +121,11 @@ export default function PatternsDevPage() {
       timestamp: '12 min ago',
       confidence: 0.94,
       diffs: [
-        { label: 'Base Rate', before: '?8,500', after: '?10,200' },
+        { label: 'Base Rate', before: '₹8,500', after: '₹10,200' },
         { label: 'Min Stay', before: '1 night', after: '2 nights' },
         { label: 'Cancellation Policy', before: 'Flexible (24h)', after: 'Strict (72h)' },
       ],
-      impactSummary: '+?34,000 estimated weekend revenue uplift',
+      impactSummary: '+₹34,000 estimated weekend revenue uplift',
     },
     {
       id: 'app-2',
@@ -486,7 +475,7 @@ export default function PatternsDevPage() {
                   Prefers quiet room away from elevator. Requested extra towels on 21 Aug via WhatsApp concierge.
                 </p>
                 <div className="inline-flex items-center gap-1.5 text-caption text-accent font-medium">
-                  <span>? Verified by Concierge Agent</span>
+                  <span>✓ Verified by Concierge Agent</span>
                 </div>
               </div>
             </div>
@@ -496,15 +485,15 @@ export default function PatternsDevPage() {
             <div className="p-4 rounded-md bg-surface-2 border border-border space-y-3">
               <div className="flex justify-between items-center border-b border-border pb-2">
                 <span className="text-body-sm text-muted-foreground">Room Charges (3 nights)</span>
-                <span className="font-mono font-medium text-foreground">?12,000</span>
+                <span className="font-mono font-medium text-foreground">₹12,000</span>
               </div>
               <div className="flex justify-between items-center border-b border-border pb-2">
                 <span className="text-body-sm text-muted-foreground">F&B Room Service</span>
-                <span className="font-mono font-medium text-foreground">?2,200</span>
+                <span className="font-mono font-medium text-foreground">₹2,200</span>
               </div>
               <div className="flex justify-between items-center pt-1 font-semibold">
                 <span className="text-body-md text-foreground">Total Balance Due</span>
-                <span className="font-mono text-heading-sm text-accent">?14,200</span>
+                <span className="font-mono text-heading-sm text-accent">₹14,200</span>
               </div>
             </div>
           )}
@@ -537,6 +526,6 @@ export default function PatternsDevPage() {
       </DetailDrawer>
     </div>
   );
-}
+}
 
 
