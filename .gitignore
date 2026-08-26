@@ -40,6 +40,9 @@ yarn-error.log*
 /.worktrees/
 /.claude/worktrees/
 
+# superpowers scratch workspaces
+/.superpowers/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
