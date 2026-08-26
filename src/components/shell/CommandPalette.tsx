@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bed, BookOpen, User, Sparkles, ClipboardList } from 'lucide-react';
+import { Bed, BookOpen, User, Sparkles, ClipboardList, Wrench } from 'lucide-react';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { mockReservations, room204Alert } from '@/lib/mock-data';
 import { isRouteBuilt } from '@/lib/routes';
@@ -36,6 +36,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     { label: 'Go to Front Desk', href: '/app/front-desk', icon: BookOpen },
     { label: 'Go to Guests', href: '/app/guests', icon: User },
     { label: 'Go to Service Requests', href: '/app/service-requests', icon: ClipboardList },
+    { label: 'Go to Maintenance', href: '/app/maintenance', icon: Wrench },
     { label: 'Go to Calendar', href: '/app/calendar', icon: Bed },
     { label: 'Go to AI Command Centre', href: '/app/ai', icon: Sparkles },
     { label: 'Go to Billing & Folios', href: '/app/billing', icon: BookOpen },
@@ -44,13 +45,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const aarav = mockReservations.find((r) => r.id === 'RES-8921')!;
   const elena = mockReservations.find((r) => r.id === 'RES-8922')!;
 
-  // These entity destinations are always dynamic detail routes StayO hasn't
-  // built yet — isRouteBuilt only knows static paths, so they're marked
-  // unbuilt directly rather than through the shared registry.
+  // Aarav's and Elena's links below are dynamic detail routes StayO hasn't
+  // built yet — isRouteBuilt only knows static paths, so those two stay
+  // hardcoded unbuilt. Room 204's link points at the (now-built) static
+  // Maintenance list page, so it reads off the shared registry instead.
   const quickEntities = [
     { label: `${aarav.guestName} (Room ${aarav.roomNumber} – In-House)`, href: `/app/guests/${aarav.roomNumber}`, icon: User, type: 'Guest', built: false },
     { label: `${elena.guestName} (Room ${elena.roomNumber} – Arrival Today)`, href: '/app/reservations/8922', icon: BookOpen, type: 'Reservation', built: false },
-    { label: `Room ${room204Alert.roomNumber} (Maintenance Emergency)`, href: '/app/maintenance', icon: Bed, type: 'Room', built: false },
+    { label: `Room ${room204Alert.roomNumber} (Maintenance Emergency)`, href: '/app/maintenance', icon: Bed, type: 'Room', built: isRouteBuilt('/app/maintenance') },
   ];
 
   const handleSelect = (href: string, built: boolean) => {

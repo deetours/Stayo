@@ -188,3 +188,22 @@ export const mockServiceRequests: MockServiceRequest[] = [
   { id: 'SR-503', roomNumber: '301', guestName: 'Vikram Mehta', title: 'Room service — breakfast for 2', category: 'F&B', status: 'in-progress', priority: 'normal', waitingSince: '8 min ago', assignee: { name: 'Rahul V.', initials: 'RV' } },
   { id: 'SR-504', roomNumber: '105', guestName: 'Sarah Jenkins', title: 'AC not cooling', category: 'Maintenance', status: 'resolved', priority: 'normal', waitingSince: '1 hr ago', assignee: { name: 'Manoj K.', initials: 'MK' } },
 ];
+
+export type MaintenanceStatus = 'reported' | 'in-progress' | 'resolved';
+
+export interface MockMaintenanceTicket {
+  id: string;
+  roomNumber: string;
+  title: string;
+  detail: string;
+  status: MaintenanceStatus;
+  priority: TaskPriority;
+  reportedAt: string;
+  assignee?: { name: string; initials: string };
+}
+
+export const mockMaintenanceTickets: MockMaintenanceTicket[] = [
+  { id: 'MT-901', roomNumber: room204Alert.roomNumber, title: 'Bathroom leak', detail: room204Alert.detail, status: 'reported', priority: 'urgent', reportedAt: '12 min ago' },
+  { id: 'MT-902', roomNumber: '105', title: 'AC not cooling', detail: 'Guest reports the AC unit is running but not cooling the room.', status: 'in-progress', priority: 'high', reportedAt: '1 hr ago', assignee: { name: 'Manoj K.', initials: 'MK' } },
+  { id: 'MT-903', roomNumber: '303', title: 'Bathroom tap dripping', detail: 'Slow drip reported by housekeeping during turnover.', status: 'resolved', priority: 'low', reportedAt: 'Yesterday', assignee: { name: 'Rahul V.', initials: 'RV' } },
+];

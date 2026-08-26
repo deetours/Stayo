@@ -1,0 +1,78 @@
+'use client';
+
+import React, { useState } from 'react';
+import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
+import { DetailDrawer } from '@/components/patterns/DetailDrawer';
+import { useOptimisticAction } from '@/hooks/useOptimisticAction';
+import { mockMaintenanceTickets } from '@/lib/mock-data';
+
+const columns: KanbanColumn[] = [
+  { id: 'reported', title: 'Reported' },
+  { id: 'in-progress', title: 'In Progress' },
+  { id: 'resolved', title: 'Resolved' },
+];
+
+const initialItems: KanbanItem[] = mockMaintenanceTickets.map((t) => ({
+  id: t.id,
+  title: `${t.title} — Room ${t.roomNumber}`,
+  subtitle: t.detail,
+  status: t.status,
+  priority: t.priority,
+  assignee: t.assignee,
+  meta: t.reportedAt,
+}));
+
+export default function MaintenancePage() {
+  const { state: items, performAction } = useOptimisticAction<KanbanItem[]>(initialItems);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selected, setSelected] = useState<KanbanItem | null>(null);
+
+  const handleItemMove = (itemId: string, targetStatus: string) => {
+    performAction(
+      (prev) => prev.map((it) => (it.id === itemId ? { ...it, status: targetStatus } : it)),
+      async () => { await new Promise((res) => setTimeout(res, 300)); }
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-heading-lg font-semibold tracking-tight text-foreground">Maintenance</h1>
+        <p className="text-body-sm text-muted-foreground mt-1">
+          {items.filter((i) => i.status !== 'resolved').length} open tickets. Drag a card to advance it.
+        </p>
+      </div>
+
+      <KanbanBoard
+        columns={columns}
+        items={items}
+        onItemMove={handleItemMove}
+        onItemClick={(item) => { setSelected(item); setDrawerOpen(true); }}
+      />
+
+      <DetailDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={selected?.title ?? 'Ticket'}
+        badge={selected && (
+          <span className="font-mono text-caption px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/30 uppercase">
+            {selected.status}
+          </span>
+        )}
+        footerActions={
+          <button
+            onClick={() => setDrawerOpen(false)}
+            className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
+          >
+            Close
+          </button>
+        }
+      >
+        <p className="text-body-sm text-muted-foreground">{selected?.subtitle}</p>
+        <p className="text-body-sm text-muted-foreground">
+          Assigned to {selected?.assignee?.name ?? 'nobody yet'}.
+        </p>
+      </DetailDrawer>
+    </div>
+  );
+}

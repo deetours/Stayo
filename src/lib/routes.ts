@@ -10,6 +10,7 @@ const BUILT_ROUTES = new Set([
   '/app/guests',
   '/app/billing',
   '/app/service-requests',
+  '/app/maintenance',
 ]);
 
 export function isRouteBuilt(href: string): boolean {
