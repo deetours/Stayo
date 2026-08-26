@@ -144,3 +144,23 @@ export const mockGuests: MockGuest[] = [
   { id: 'GST-004', name: 'Sarah Jenkins', email: 'sarah.jenkins@example.com', phone: '+1 415 555 0132', vip: false, totalStays: 1, lastStay: '25 Aug', totalSpend: '₹12,400' },
   { id: 'GST-005', name: 'Rohan Gupta', email: 'rohan.gupta@example.com', phone: '+91 99887 66554', vip: false, totalStays: 3, lastStay: '27 Aug', totalSpend: '₹31,000' },
 ];
+
+export type FolioStatus = 'outstanding' | 'partial' | 'paid';
+
+export interface MockFolio {
+  id: string;
+  guestName: string;
+  roomNumber: string;
+  reservationId: string;
+  charges: { label: string; amount: number }[];
+  totalPaid: number;
+  status: FolioStatus;
+}
+
+export const mockFolios: MockFolio[] = [
+  { id: 'FOL-442', guestName: 'Aarav Sharma', roomNumber: '102', reservationId: 'RES-8921', charges: [{ label: 'Room Charges', amount: 14200 }, { label: 'Restaurant', amount: 2200 }], totalPaid: 14200, status: 'partial' },
+  { id: 'FOL-443', guestName: 'Elena Rostova', roomNumber: '204', reservationId: 'RES-8922', charges: [{ label: 'Room Charges', amount: 22500 }], totalPaid: 0, status: 'outstanding' },
+  { id: 'FOL-444', guestName: 'Vikram Mehta', roomNumber: '301', reservationId: 'RES-8923', charges: [{ label: 'Room Charges', amount: 18000 }], totalPaid: 18000, status: 'paid' },
+  { id: 'FOL-445', guestName: 'Sarah Jenkins', roomNumber: '105', reservationId: 'RES-8924', charges: [{ label: 'Room Charges', amount: 12400 }], totalPaid: 12400, status: 'paid' },
+  { id: 'FOL-446', guestName: 'Rohan Gupta', roomNumber: '208', reservationId: 'RES-8925', charges: [{ label: 'Room Charges', amount: 31000 }], totalPaid: 0, status: 'outstanding' },
+];
