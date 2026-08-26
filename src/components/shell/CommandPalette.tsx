@@ -34,6 +34,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     { label: 'Go to Rooms', href: '/app/rooms', icon: Bed },
     { label: 'Go to Housekeeping Board', href: '/app/housekeeping', icon: Sparkles },
     { label: 'Go to Front Desk', href: '/app/front-desk', icon: BookOpen },
+    { label: 'Go to Guests', href: '/app/guests', icon: User },
     { label: 'Go to Calendar', href: '/app/calendar', icon: Bed },
     { label: 'Go to AI Command Centre', href: '/app/ai', icon: Sparkles },
     { label: 'Go to Billing & Folios', href: '/app/billing', icon: BookOpen },

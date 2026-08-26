@@ -121,3 +121,26 @@ export const room204Alert: RoomAlert = {
   title: 'Maintenance emergency — Room 204 (Bathroom leak)',
   detail: 'Bathroom leak reported ahead of a 14:00 VIP arrival. Room is blocked pending repair.',
 };
+
+export interface MockGuest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  vip: boolean;
+  totalStays: number;
+  lastStay: string;
+  totalSpend: string;
+  notes?: string;
+}
+
+// One row per named guest already used across mockReservations, the
+// dashboard, and CommandPalette — kept 1:1 so drilling from a guest into
+// their stay history never hits an unknown name.
+export const mockGuests: MockGuest[] = [
+  { id: 'GST-001', name: 'Aarav Sharma', email: 'aarav.sharma@example.com', phone: '+91 98765 43210', vip: true, totalStays: 4, lastStay: 'Today', totalSpend: '₹58,200', notes: 'Prefers quiet room away from elevator. Requested extra towels via WhatsApp concierge.' },
+  { id: 'GST-002', name: 'Elena Rostova', email: 'elena.rostova@example.com', phone: '+91 90000 11223', vip: false, totalStays: 1, lastStay: 'Today', totalSpend: '₹22,500' },
+  { id: 'GST-003', name: 'Vikram Mehta', email: 'vikram.mehta@example.com', phone: '+91 98111 22334', vip: false, totalStays: 2, lastStay: 'Tomorrow', totalSpend: '₹32,000' },
+  { id: 'GST-004', name: 'Sarah Jenkins', email: 'sarah.jenkins@example.com', phone: '+1 415 555 0132', vip: false, totalStays: 1, lastStay: '25 Aug', totalSpend: '₹12,400' },
+  { id: 'GST-005', name: 'Rohan Gupta', email: 'rohan.gupta@example.com', phone: '+91 99887 66554', vip: false, totalStays: 3, lastStay: '27 Aug', totalSpend: '₹31,000' },
+];
