@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bed, BookOpen, User, Sparkles } from 'lucide-react';
+import { Bed, BookOpen, User, Sparkles, ClipboardList } from 'lucide-react';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { mockReservations, room204Alert } from '@/lib/mock-data';
 import { isRouteBuilt } from '@/lib/routes';
@@ -35,6 +35,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     { label: 'Go to Housekeeping Board', href: '/app/housekeeping', icon: Sparkles },
     { label: 'Go to Front Desk', href: '/app/front-desk', icon: BookOpen },
     { label: 'Go to Guests', href: '/app/guests', icon: User },
+    { label: 'Go to Service Requests', href: '/app/service-requests', icon: ClipboardList },
     { label: 'Go to Calendar', href: '/app/calendar', icon: Bed },
     { label: 'Go to AI Command Centre', href: '/app/ai', icon: Sparkles },
     { label: 'Go to Billing & Folios', href: '/app/billing', icon: BookOpen },

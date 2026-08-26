@@ -164,3 +164,27 @@ export const mockFolios: MockFolio[] = [
   { id: 'FOL-445', guestName: 'Sarah Jenkins', roomNumber: '105', reservationId: 'RES-8924', charges: [{ label: 'Room Charges', amount: 12400 }], totalPaid: 12400, status: 'paid' },
   { id: 'FOL-446', guestName: 'Rohan Gupta', roomNumber: '208', reservationId: 'RES-8925', charges: [{ label: 'Room Charges', amount: 31000 }], totalPaid: 0, status: 'outstanding' },
 ];
+
+export type ServiceRequestStatus = 'open' | 'in-progress' | 'resolved';
+export type ServiceRequestCategory = 'Housekeeping' | 'Maintenance' | 'F&B' | 'Concierge';
+
+export interface MockServiceRequest {
+  id: string;
+  roomNumber: string;
+  guestName: string;
+  title: string;
+  category: ServiceRequestCategory;
+  status: ServiceRequestStatus;
+  priority: TaskPriority;
+  waitingSince: string;
+  assignee?: { name: string; initials: string };
+}
+
+// SR-501 and SR-502 are the "2 guest requests waiting > 20 min" the
+// Dashboard's Needs Attention feed already references.
+export const mockServiceRequests: MockServiceRequest[] = [
+  { id: 'SR-501', roomNumber: '204', guestName: 'Elena Rostova', title: 'Extra towels requested', category: 'Housekeeping', status: 'open', priority: 'urgent', waitingSince: '22 min ago' },
+  { id: 'SR-502', roomNumber: '102', guestName: 'Aarav Sharma', title: 'Late checkout to 1:00 PM', category: 'Concierge', status: 'open', priority: 'high', waitingSince: '21 min ago' },
+  { id: 'SR-503', roomNumber: '301', guestName: 'Vikram Mehta', title: 'Room service — breakfast for 2', category: 'F&B', status: 'in-progress', priority: 'normal', waitingSince: '8 min ago', assignee: { name: 'Rahul V.', initials: 'RV' } },
+  { id: 'SR-504', roomNumber: '105', guestName: 'Sarah Jenkins', title: 'AC not cooling', category: 'Maintenance', status: 'resolved', priority: 'normal', waitingSince: '1 hr ago', assignee: { name: 'Manoj K.', initials: 'MK' } },
+];
