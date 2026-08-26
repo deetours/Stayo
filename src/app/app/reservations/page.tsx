@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
 import { mockReservations, MockReservation } from '@/lib/mock-data';
@@ -34,9 +36,18 @@ const columns: Column<MockReservation>[] = [
 const filterChips: FilterChip[] = [
   { id: 'all', label: 'All Reservations', count: mockReservations.length },
   { id: 'today', label: 'Arriving Today', count: mockReservations.filter((r) => r.checkIn === 'Today').length },
+  { id: 'departures', label: 'Departing Today', count: mockReservations.filter((r) => r.checkOut === 'Today').length },
   { id: 'in-house', label: 'In-House', count: mockReservations.filter((r) => r.status === 'checked-in').length },
   { id: 'cancelled', label: 'Cancelled', count: mockReservations.filter((r) => r.status === 'cancelled').length },
 ];
+
+// Maps the ?filter= values the Dashboard's KPI cards link with onto this
+// page's own filter chip ids — so those links actually filter instead of
+// landing on the unfiltered "All Reservations" view.
+const QUERY_FILTER_TO_CHIP: Record<string, string> = {
+  arrivals: 'today',
+  departures: 'departures',
+};
 
 const drawerTabs: TabItem[] = [
   { id: 'overview', label: 'Overview' },
@@ -46,13 +57,30 @@ const drawerTabs: TabItem[] = [
 ];
 
 export default function ReservationsPage() {
-  const [filter, setFilter] = useState('all');
+  return (
+    <Suspense fallback={null}>
+      <ReservationsPageContent />
+    </Suspense>
+  );
+}
+
+function ReservationsPageContent() {
+  const searchParams = useSearchParams();
+  // Lazy initializer so the incoming link's filter applies once, on arrival,
+  // without a setState-in-effect render cascade — the chips themselves own
+  // filter state from then on.
+  const [filter, setFilter] = useState(() => {
+    const queryFilter = searchParams.get('filter');
+    const chipId = queryFilter ? QUERY_FILTER_TO_CHIP[queryFilter] : undefined;
+    return chipId ?? 'all';
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MockReservation | null>(null);
   const [drawerTab, setDrawerTab] = useState('overview');
 
   const filtered = mockReservations.filter((r) => {
     if (filter === 'today') return r.checkIn === 'Today';
+    if (filter === 'departures') return r.checkOut === 'Today';
     if (filter === 'in-house') return r.status === 'checked-in';
     if (filter === 'cancelled') return r.status === 'cancelled';
     return true;
@@ -83,13 +111,13 @@ export default function ReservationsPage() {
         onRowClick={openDrawer}
         actions={[{ label: 'View details', onClick: (item) => openDrawer(item) }]}
         bulkActions={[
-          { label: 'Batch Check-In', onClick: (items) => alert(`Checking in ${items.length} guests`) },
-          { label: 'Cancel Bookings', variant: 'destructive', onClick: (items) => alert(`Cancelling ${items.length} reservations`) },
+          { label: 'Batch Check-In', onClick: (items) => toast.success(`Checking in ${items.length} guests`) },
+          { label: 'Cancel Bookings', variant: 'destructive', onClick: (items) => toast.success(`Cancelling ${items.length} reservations`) },
         ]}
         emptyTitle="No reservations found"
         emptyDescription="There are currently no reservations booked for this filter."
         emptyActionLabel="Add Reservation"
-        onEmptyAction={() => alert('New Reservation Triggered')}
+        onEmptyAction={() => toast('New reservation flow coming soon')}
       />
 
       <DetailDrawer
@@ -117,7 +145,7 @@ export default function ReservationsPage() {
             </button>
             <button
               onClick={() => {
-                alert('Saved changes');
+                toast.success('Saved changes');
                 setDrawerOpen(false);
               }}
               className="px-4 py-2 rounded-sm bg-accent text-accent-foreground text-body-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"

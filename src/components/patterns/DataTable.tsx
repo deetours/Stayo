@@ -203,8 +203,68 @@ export function DataTable<T extends Record<string, any>>({
         )}
       </div>
 
+      {/* Card list — below sm, where a horizontally-scrolled table and
+          hover-only row actions are both unreachable by touch. */}
+      <div className="sm:hidden space-y-2.5">
+        {sortedData.map((item) => {
+          const key = keyExtractor(item);
+          const isSelected = selectedKeys.has(key);
+
+          return (
+            <div
+              key={key}
+              onClick={() => onRowClick?.(item)}
+              className={`p-3.5 rounded-md border shadow-e0 space-y-2.5 ${
+                onRowClick ? 'cursor-pointer' : ''
+              } ${isSelected ? 'bg-accent/5 border-accent/30' : 'bg-surface border-border'}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div
+                  onClick={(e) => toggleSelectRow(key, e)}
+                  className={`w-5 h-5 rounded-sm border flex items-center justify-center cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-accent border-accent text-accent-foreground'
+                      : 'border-muted-foreground/30'
+                  }`}
+                >
+                  {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                </div>
+
+                {actions && actions.length > 0 && (
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    {actions.map((act, aIdx) => (
+                      <button
+                        key={aIdx}
+                        title={act.label}
+                        onClick={(e) => act.onClick(item, e)}
+                        className="p-1.5 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors"
+                      >
+                        {act.icon || <MoreHorizontal className="w-4 h-4" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="divide-y divide-border/50">
+                {columns.map((col) => (
+                  <div key={col.key} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
+                    <span className="text-caption text-muted-foreground uppercase tracking-wide shrink-0">
+                      {col.header}
+                    </span>
+                    <span className="text-body-sm text-foreground text-right truncate min-w-0">
+                      {col.render ? col.render(item) : item[col.key]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Main Table */}
-      <div className="border border-border rounded-md overflow-hidden bg-surface shadow-e0">
+      <div className="hidden sm:block border border-border rounded-md overflow-hidden bg-surface shadow-e0">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

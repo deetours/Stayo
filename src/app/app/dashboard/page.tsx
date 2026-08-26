@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   TrendingUp,
   AlertCircle,
@@ -21,6 +22,9 @@ import { useOptimisticAction } from '@/hooks/useOptimisticAction';
 import { roomStatusCounts, TOTAL_ROOMS, room204Alert } from '@/lib/mock-data';
 import { gsap, useGSAP, Flip } from '@/lib/gsap';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useUIStore } from '@/lib/store';
+import { SmartLink } from '@/components/shared/SmartLink';
+import { ApprovalFlow, ApprovalItem } from '@/components/patterns/ApprovalFlow';
 
 interface NeedsAttentionItem {
   id: string;
@@ -80,15 +84,104 @@ const initialNeedsAttention: NeedsAttentionItem[] = [
   },
 ];
 
+const initialRecommendations: ApprovalItem[] = [
+  {
+    id: 'ai-rate-1',
+    title: 'Pine Suite Weekend Surge',
+    sourceAgent: 'Revenue Agent',
+    reason: '3 comp set hotels are fully booked this weekend.',
+    timestamp: 'Just now',
+    confidence: 0.87,
+    diffs: [{ label: 'Weekend Base Rate', before: '₹8,500', after: '₹10,200' }],
+    impactSummary: '+₹24k projected weekend gain',
+  },
+];
+
 export default function DashboardPage() {
   const [dateStr, setDateStr] = useState('Today, 21 Aug 2026');
+  const setAskStayOOpen = useUIStore((s) => s.setAskStayOOpen);
 
   // Optimistic Needs Attention feed
   const { state: needsAttention, performAction } = useOptimisticAction(initialNeedsAttention);
 
+  const { state: recommendations, performAction: performRecommendationAction } =
+    useOptimisticAction(initialRecommendations);
+
+  const handleApproveRecommendation = (id: string) => {
+    performRecommendationAction(
+      (prev) => prev.filter((item) => item.id !== id),
+      async () => {
+        await new Promise((res) => setTimeout(res, 300));
+      }
+    );
+    toast.success('Surge rate applied to calendar');
+  };
+
+  const handleAdjustRecommendation = () => {
+    setAskStayOOpen(true);
+  };
+
+  const handleDismissRecommendation = (id: string) => {
+    performRecommendationAction(
+      (prev) => prev.filter((item) => item.id !== id),
+      async () => {
+        await new Promise((res) => setTimeout(res, 300));
+      }
+    );
+    toast('Recommendation dismissed');
+  };
+
   const attentionListRef = useRef<HTMLDivElement>(null);
   const attentionFlipStateRef = useRef<Flip.FlipState | null>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  const kpiStripRef = useRef<HTMLDivElement>(null);
+  const kpiValueRefs = useRef<(HTMLSpanElement | null)[]>([]);
+
+  const occupancyPct = Math.round((roomStatusCounts.occupied / TOTAL_ROOMS) * 100);
+  const kpiTargets = [
+    { value: occupancyPct, decimals: 0, format: (v: number) => `${Math.round(v)}%` },
+    { value: 14, decimals: 0, format: (v: number) => `${Math.round(v)}` },
+    { value: 11, decimals: 0, format: (v: number) => `${Math.round(v)}` },
+    { value: 42, decimals: 0, format: (v: number) => `${Math.round(v)}` },
+    { value: 1.84, decimals: 2, format: (v: number) => `₹${v.toFixed(2)}L` },
+  ];
+
+  // First-paint polish, added last on purpose — an animated number is only
+  // trustworthy once the card it's on reliably goes somewhere (Waves 1-3).
+  useGSAP(
+    () => {
+      if (prefersReducedMotion) return;
+
+      gsap.from('[data-kpi-card]', {
+        opacity: 0,
+        y: 12,
+        duration: 0.4,
+        stagger: 0.06,
+        ease: 'power2.out',
+      });
+
+      kpiTargets.forEach((target, i) => {
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: target.value,
+          duration: 0.8,
+          delay: 0.1 + i * 0.06,
+          ease: 'power2.out',
+          onUpdate: () => {
+            const el = kpiValueRefs.current[i];
+            if (el) el.textContent = target.format(obj.val);
+          },
+        });
+      });
+
+      const attentionRows = attentionListRef.current?.querySelectorAll('[data-flip-id]');
+      if (attentionRows?.length) {
+        gsap.from(attentionRows, { opacity: 0, y: 8, duration: 0.3, stagger: 0.05, ease: 'power2.out' });
+      }
+    },
+    { scope: kpiStripRef, dependencies: [] }
+  );
 
   const handleDismissAttention = (id: string) => {
     if (!prefersReducedMotion && attentionListRef.current) {
@@ -133,83 +226,98 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
+          <SmartLink
             href="/app/front-desk"
             className="px-3.5 py-1.5 rounded-sm bg-accent text-accent-foreground text-body-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Open Front Desk Shift
-          </Link>
+          </SmartLink>
         </div>
       </div>
 
       {/* 2. KPI Strip (5 Numbers Max - Ticking numbers) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        <Link
+      <div ref={kpiStripRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+        <SmartLink
           href="/app/calendar"
+          data-kpi-card
           className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Occupancy
           </div>
           <div className="font-mono text-display-md font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
-            {Math.round((roomStatusCounts.occupied / TOTAL_ROOMS) * 100)}%
+            <span ref={(el) => { kpiValueRefs.current[0] = el; }}>
+              {prefersReducedMotion ? kpiTargets[0].format(kpiTargets[0].value) : kpiTargets[0].format(0)}
+            </span>
           </div>
           <div className="text-caption text-status-ok font-mono mt-0.5">{roomStatusCounts.occupied} of {TOTAL_ROOMS} Rooms</div>
-        </Link>
+        </SmartLink>
 
-        <Link
+        <SmartLink
           href="/app/reservations?filter=arrivals"
+          data-kpi-card
           className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Arrivals Today
           </div>
           <div className="font-mono text-display-md font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
-            14
+            <span ref={(el) => { kpiValueRefs.current[1] = el; }}>
+              {prefersReducedMotion ? kpiTargets[1].format(kpiTargets[1].value) : kpiTargets[1].format(0)}
+            </span>
           </div>
           <div className="text-caption text-muted-foreground font-mono mt-0.5">6 Checked In</div>
-        </Link>
+        </SmartLink>
 
-        <Link
+        <SmartLink
           href="/app/reservations?filter=departures"
+          data-kpi-card
           className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Departures Today
           </div>
           <div className="font-mono text-display-md font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
-            11
+            <span ref={(el) => { kpiValueRefs.current[2] = el; }}>
+              {prefersReducedMotion ? kpiTargets[2].format(kpiTargets[2].value) : kpiTargets[2].format(0)}
+            </span>
           </div>
           <div className="text-caption text-muted-foreground font-mono mt-0.5">9 Completed</div>
-        </Link>
+        </SmartLink>
 
-        <Link
+        <SmartLink
           href="/app/guests"
+          data-kpi-card
           className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             In-House Guests
           </div>
           <div className="font-mono text-display-md font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
-            42
+            <span ref={(el) => { kpiValueRefs.current[3] = el; }}>
+              {prefersReducedMotion ? kpiTargets[3].format(kpiTargets[3].value) : kpiTargets[3].format(0)}
+            </span>
           </div>
           <div className="text-caption text-accent font-mono mt-0.5">4 VIP Guests</div>
-        </Link>
+        </SmartLink>
 
-        <Link
+        <SmartLink
           href="/app/revenue"
+          data-kpi-card
           className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group col-span-2 sm:col-span-1"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Revenue Today
           </div>
           <div className="font-mono text-display-md font-bold text-accent mt-1">
-            ₹1.84L
+            <span ref={(el) => { kpiValueRefs.current[4] = el; }}>
+              {prefersReducedMotion ? kpiTargets[4].format(kpiTargets[4].value) : kpiTargets[4].format(0)}
+            </span>
           </div>
           <div className="text-caption text-status-ok font-mono mt-0.5 flex items-center gap-1">
             <TrendingUp className="w-3 h-3" /> +18% vs yesterday
           </div>
-        </Link>
+        </SmartLink>
       </div>
 
       {/* Two Column Operational Hub: Left = Needs Attention | Right = StayO AI & Activity */}
@@ -253,12 +361,12 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <Link
+                    <SmartLink
                       href={item.link}
                       className="text-body-sm font-medium text-accent hover:underline px-2 py-1"
                     >
                       {item.linkLabel}
-                    </Link>
+                    </SmartLink>
                     <button
                       onClick={() => handleDismissAttention(item.id)}
                       className="p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 cursor-pointer"
@@ -281,7 +389,7 @@ export default function DashboardPage() {
           {/* Section 4: Today's Operations Mini-Tabs */}
           <div className="pt-4 space-y-3">
             <h4 className="text-heading-sm font-semibold text-foreground">
-              Today's Key Shifts & Stays
+              Today&apos;s Key Shifts &amp; Stays
             </h4>
             <div className="bg-surface border border-border rounded-md divide-y divide-border overflow-hidden">
               <div className="p-3 flex items-center justify-between text-body-sm">
@@ -361,39 +469,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Section 7: StayO AI Recommendations */}
-          <div className="p-4 bg-surface border border-accent/40 rounded-md space-y-3 shadow-e0">
+          <div className="space-y-3">
             <div className="flex items-center gap-2 text-accent">
               <Bot className="w-4 h-4" />
               <span className="font-semibold text-body-sm">StayO AI Recommendations</span>
             </div>
 
-            <div className="space-y-2.5">
-              <div className="p-3 rounded-sm bg-surface-2 border border-border space-y-2">
-                <div className="flex justify-between items-start">
-                  <div className="font-semibold text-body-sm text-foreground">
-                    Pine Suite Weekend Surge
-                  </div>
-                  <span className="text-caption font-mono text-accent">+₹24k Gain</span>
-                </div>
-                <p className="text-body-sm text-muted-foreground">
-                  3 comp set hotels are fully booked. Increase weekend base rate from ₹8,500 to ₹10,200.
-                </p>
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={() => alert('Surge Rate Applied to Calendar')}
-                    className="px-2.5 py-1 rounded-sm bg-accent text-accent-foreground text-caption font-semibold hover:opacity-90 cursor-pointer"
-                  >
-                    Approve Rate
-                  </button>
-                  <Link
-                    href="/app/ai"
-                    className="px-2.5 py-1 rounded-sm bg-surface border border-border text-caption text-foreground hover:bg-border"
-                  >
-                    Review in AI Workspace
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <ApprovalFlow
+              items={recommendations}
+              onApprove={handleApproveRecommendation}
+              onAdjust={handleAdjustRecommendation}
+              onDismiss={handleDismissRecommendation}
+            />
           </div>
 
           {/* Section 8: Live Activity Feed */}

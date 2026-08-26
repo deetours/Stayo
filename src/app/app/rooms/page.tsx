@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { X } from 'lucide-react';
 import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
@@ -14,6 +16,17 @@ const columns: KanbanColumn[] = [
   { id: 'blocked', title: 'Blocked' },
 ];
 
+// The Dashboard's Room Status strip links here with ?status=<value> — its
+// "maintenance" tile actually reflects the "blocked" column, so that one
+// needs a rename rather than a 1:1 match against column ids.
+const QUERY_STATUS_TO_COLUMN: Record<string, string> = {
+  available: 'available',
+  occupied: 'occupied',
+  dirty: 'dirty',
+  cleaning: 'cleaning',
+  maintenance: 'blocked',
+};
+
 function toKanbanItem(room: MockRoom): KanbanItem {
   return {
     id: room.number,
@@ -25,6 +38,20 @@ function toKanbanItem(room: MockRoom): KanbanItem {
 }
 
 export default function RoomsPage() {
+  return (
+    <Suspense fallback={null}>
+      <RoomsPageContent />
+    </Suspense>
+  );
+}
+
+function RoomsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get('status');
+  const highlightColumnId = statusParam ? QUERY_STATUS_TO_COLUMN[statusParam] ?? null : null;
+  const highlightColumn = columns.find((c) => c.id === highlightColumnId);
+
   const { state: items, performAction } = useOptimisticAction<KanbanItem[]>(mockRooms.map(toKanbanItem));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<KanbanItem | null>(null);
@@ -47,10 +74,24 @@ export default function RoomsPage() {
         </p>
       </div>
 
+      {highlightColumn && (
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-md bg-accent/10 border border-accent/30 text-body-sm text-accent">
+          <span>Showing rooms flagged from the Dashboard as &ldquo;{highlightColumn.title}&rdquo;.</span>
+          <button
+            onClick={() => router.replace('/app/rooms')}
+            className="inline-flex items-center gap-1 text-caption font-medium hover:underline cursor-pointer shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+            Clear
+          </button>
+        </div>
+      )}
+
       <KanbanBoard
         columns={columns}
         items={items}
         onItemMove={handleItemMove}
+        highlightColumnId={highlightColumnId}
         onItemClick={(item) => {
           setSelectedRoom(item);
           setDrawerOpen(true);

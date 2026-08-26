@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MoreVertical, ChevronRight, Check } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { MoreVertical } from 'lucide-react';
 import { BoardSkeleton } from './StateContainers';
 import { gsap, useGSAP, Flip } from '@/lib/gsap';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
@@ -34,6 +33,9 @@ export interface KanbanBoardProps {
   onItemMove: (itemId: string, targetStatus: string) => void;
   onItemClick?: (item: KanbanItem) => void;
   isLoading?: boolean;
+  // Column to visually call out and scroll into view on mount — e.g. when
+  // arriving from a Dashboard link that promised to filter to one status.
+  highlightColumnId?: string | null;
 }
 
 export function KanbanBoard({
@@ -42,6 +44,7 @@ export function KanbanBoard({
   onItemMove,
   onItemClick,
   isLoading,
+  highlightColumnId,
 }: KanbanBoardProps) {
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<string | null>(null);
@@ -49,7 +52,20 @@ export function KanbanBoard({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const flipStateRef = useRef<Flip.FlipState | null>(null);
+  const highlightColRef = useRef<HTMLDivElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (highlightColumnId && highlightColRef.current) {
+      highlightColRef.current.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+    // Only run once per incoming highlight target, on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightColumnId]);
 
   // Cards move between columns (different DOM subtrees) on every status
   // change, so React unmounts/remounts them rather than moving one node —
@@ -118,15 +134,21 @@ export function KanbanBoard({
       {columns.map((col) => {
         const colItems = items.filter((item) => item.status === col.id);
         const isOver = dragOverColId === col.id;
+        const isHighlighted = highlightColumnId === col.id;
 
         return (
           <div
             key={col.id}
+            ref={isHighlighted ? highlightColRef : undefined}
             onDragOver={(e) => handleDragOver(e, col.id)}
             onDragLeave={handleDragLeave}
             onDrop={() => handleDrop(col.id)}
             className={`flex flex-col min-w-[260px] bg-surface rounded-md border transition-all duration-fast ${
-              isOver ? 'border-accent bg-surface/80' : 'border-border'
+              isOver
+                ? 'border-accent bg-surface/80'
+                : isHighlighted
+                ? 'border-accent ring-1 ring-accent/40'
+                : 'border-border'
             }`}
           >
             {/* Column Header */}

@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Toaster } from 'sonner';
 import { AppSidebar } from '@/components/shell/AppSidebar';
 import { AppTopBar } from '@/components/shell/AppTopBar';
 import { CommandPalette } from '@/components/shell/CommandPalette';
 import { AskStayOPanel } from '@/components/shell/AskStayOPanel';
+import { useUIStore } from '@/lib/store';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
-  const [askStayOOpen, setAskStayOOpen] = useState(false);
+  const askStayOOpen = useUIStore((s) => s.askStayOOpen);
+  const setAskStayOOpen = useUIStore((s) => s.setAskStayOOpen);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground font-sans">
@@ -34,6 +37,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Global Modals & Panels */}
       <CommandPalette open={cmdKOpen} onOpenChange={setCmdKOpen} />
       <AskStayOPanel open={askStayOOpen} onOpenChange={setAskStayOOpen} />
+      <Toaster theme="dark" richColors position="bottom-right" />
     </div>
   );
 }

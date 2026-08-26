@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Bell,
@@ -8,12 +8,25 @@ import {
   ChevronDown,
   Building2,
   Check,
-  Bot,
-  Layers,
+  Menu,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { hasDevSession, hasPreviewSession } from '@/lib/session';
+import { useUIStore } from '@/lib/store';
+import { gsap } from '@/lib/gsap';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+
+// The shell's popovers/banner used to animate with Framer Motion while
+// Kanban/Dashboard reflows used GSAP — two runtimes for the app shell.
+// GSAP is the one the shell can't drop (Flip has no Framer equivalent), so
+// these simple enter fades move onto it instead, consistent with every
+// other reduced-motion-gated animation in this codebase.
+function useEnterFade(ref: React.RefObject<HTMLElement | null>, open: boolean, prefersReducedMotion: boolean) {
+  useEffect(() => {
+    if (!open || !ref.current || prefersReducedMotion) return;
+    gsap.fromTo(ref.current, { opacity: 0, y: 4 }, { opacity: 1, y: 0, duration: 0.15, ease: 'power2.out' });
+  }, [open, prefersReducedMotion, ref]);
+}
 
 interface AppTopBarProps {
   onOpenCmdK: () => void;
@@ -27,11 +40,21 @@ const mockProperties = [
 ];
 
 export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
+  const setMobileSidebarOpen = useUIStore((s) => s.setMobileSidebarOpen);
   const [propertyOpen, setPropertyOpen] = useState(false);
   const [activeProperty, setActiveProperty] = useState(mockProperties[0]);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isPreviewOnly, setIsPreviewOnly] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+
+  const propertyDropdownRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useEnterFade(propertyDropdownRef, propertyOpen, prefersReducedMotion);
+  useEnterFade(notificationsRef, notificationsOpen, prefersReducedMotion);
+  useEnterFade(bannerRef, !!bannerMessage, prefersReducedMotion);
 
   useEffect(() => {
     setIsPreviewOnly(hasPreviewSession() && !hasDevSession());
@@ -60,9 +83,18 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
           </Link>
         </div>
       )}
-      <header className="h-14 bg-surface border-b border-border px-4 flex items-center justify-between shrink-0 z-20">
+      <header className="h-14 bg-surface border-b border-border px-4 flex items-center justify-between shrink-0 z-20 gap-2">
+        {/* Mobile: Sidebar drawer trigger */}
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className="md:hidden p-2 -ml-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer shrink-0"
+          title="Open navigation"
+        >
+          <Menu className="w-4.5 h-4.5" />
+        </button>
+
         {/* Left: Property Switcher */}
-        <div className="relative">
+        <div className="relative min-w-0">
           <button
             onClick={() => setPropertyOpen(!propertyOpen)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-2 border border-border hover:border-muted-foreground/40 text-foreground transition-all cursor-pointer group"
@@ -79,42 +111,39 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
           </button>
 
           {/* Property Dropdown */}
-          <AnimatePresence>
-            {propertyOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                className="absolute top-full left-0 mt-1.5 w-64 bg-surface border border-border rounded-md shadow-[var(--shadow-e2)] p-1 z-50"
-              >
-                <div className="px-2.5 py-1.5 text-caption uppercase tracking-wider text-muted-foreground font-semibold border-b border-border">
-                  Select Property Context
-                </div>
-                <div className="py-1 space-y-0.5">
-                  {mockProperties.map((prop) => (
-                    <button
-                      key={prop.id}
-                      onClick={() => handleSelectProperty(prop)}
-                      className="w-full flex items-center justify-between p-2 rounded-sm text-left hover:bg-surface-2 transition-colors cursor-pointer"
-                    >
-                      <div>
-                        <div className="font-medium text-body-sm text-foreground">{prop.name}</div>
-                        <div className="text-caption text-muted-foreground font-mono">
-                          {prop.type} • {prop.rooms} Rooms
-                        </div>
+          {propertyOpen && (
+            <div
+              ref={propertyDropdownRef}
+              className="absolute top-full left-0 mt-1.5 w-64 bg-surface border border-border rounded-md shadow-[var(--shadow-e2)] p-1 z-50"
+            >
+              <div className="px-2.5 py-1.5 text-caption uppercase tracking-wider text-muted-foreground font-semibold border-b border-border">
+                Select Property Context
+              </div>
+              <div className="py-1 space-y-0.5">
+                {mockProperties.map((prop) => (
+                  <button
+                    key={prop.id}
+                    onClick={() => handleSelectProperty(prop)}
+                    className="w-full flex items-center justify-between p-2 rounded-sm text-left hover:bg-surface-2 transition-colors cursor-pointer"
+                  >
+                    <div>
+                      <div className="font-medium text-body-sm text-foreground">{prop.name}</div>
+                      <div className="text-caption text-muted-foreground font-mono">
+                        {prop.type} • {prop.rooms} Rooms
                       </div>
-                      {prop.id === activeProperty.id && (
-                        <Check className="w-4 h-4 text-accent" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    </div>
+                    {prop.id === activeProperty.id && (
+                      <Check className="w-4 h-4 text-accent" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Center: Global Search Bar Trigger (Cmd+K) */}
+        {/* Center: Global Search Bar Trigger (Cmd+K) — collapses to an icon
+            below md so search is never lost, only reshaped. */}
         <button
           onClick={onOpenCmdK}
           className="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-md bg-surface-2 border border-border hover:border-muted-foreground/40 text-muted-foreground text-body-sm transition-all w-80 cursor-pointer"
@@ -124,6 +153,13 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
           <span className="font-mono text-caption px-1.5 py-0.5 rounded-sm bg-surface border border-border">
             ⌘K
           </span>
+        </button>
+        <button
+          onClick={onOpenCmdK}
+          className="md:hidden ml-auto p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer shrink-0"
+          title="Search"
+        >
+          <Search className="w-4 h-4" />
         </button>
 
         {/* Right Action Tools */}
@@ -146,32 +182,28 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
             </button>
 
             {/* Notification Popover */}
-            <AnimatePresence>
-              {notificationsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  className="absolute top-full right-0 mt-1.5 w-80 bg-surface border border-border rounded-md shadow-[var(--shadow-e2)] p-2 z-50 space-y-2"
-                >
-                  <div className="flex items-center justify-between pb-1.5 border-b border-border px-1">
-                    <span className="font-semibold text-body-sm text-foreground">Notifications</span>
-                    <span className="text-caption text-accent font-mono">3 Unread</span>
-                  </div>
+            {notificationsOpen && (
+              <div
+                ref={notificationsRef}
+                className="absolute top-full right-0 mt-1.5 w-80 bg-surface border border-border rounded-md shadow-[var(--shadow-e2)] p-2 z-50 space-y-2"
+              >
+                <div className="flex items-center justify-between pb-1.5 border-b border-border px-1">
+                  <span className="font-semibold text-body-sm text-foreground">Notifications</span>
+                  <span className="text-caption text-accent font-mono">3 Unread</span>
+                </div>
 
-                  <div className="space-y-1.5 text-body-sm">
-                    <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
-                      <div className="font-medium text-foreground text-[13px]">Room 204 Maintenance Reported</div>
-                      <div className="text-caption text-muted-foreground">Bathroom leak reported by guest. Flagged emergency.</div>
-                    </div>
-                    <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
-                      <div className="font-medium text-foreground text-[13px]">Direct Booking #8923 Confirmed</div>
-                      <div className="text-caption text-muted-foreground">Vikram Mehta · Pine Suite · WhatsApp Concierge</div>
-                    </div>
+                <div className="space-y-1.5 text-body-sm">
+                  <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
+                    <div className="font-medium text-foreground text-[13px]">Room 204 Maintenance Reported</div>
+                    <div className="text-caption text-muted-foreground">Bathroom leak reported by guest. Flagged emergency.</div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
+                    <div className="font-medium text-foreground text-[13px]">Direct Booking #8923 Confirmed</div>
+                    <div className="text-caption text-muted-foreground">Vikram Mehta · Pine Suite · WhatsApp Concierge</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Ask StayO Quick Agent Trigger */}
@@ -186,18 +218,14 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
       </header>
 
       {/* Property Switch Transient Banner */}
-      <AnimatePresence>
-        {bannerMessage && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-accent/15 border-b border-accent/30 text-accent px-4 py-1.5 text-center text-body-sm font-medium"
-          >
-            {bannerMessage}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {bannerMessage && (
+        <div
+          ref={bannerRef}
+          className="bg-accent/15 border-b border-accent/30 text-accent px-4 py-1.5 text-center text-body-sm font-medium"
+        >
+          {bannerMessage}
+        </div>
+      )}
     </>
   );
 }
