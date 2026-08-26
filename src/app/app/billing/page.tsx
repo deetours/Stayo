@@ -64,8 +64,8 @@ export default function BillingPage() {
     { key: 'id', header: 'Folio', sortable: true, render: (f) => <span className="font-mono text-muted-foreground">{f.id}</span> },
     { key: 'guestName', header: 'Guest', sortable: true, render: (f) => <span className="font-medium text-foreground">{f.guestName}</span> },
     { key: 'roomNumber', header: 'Room', sortable: true, render: (f) => <span className="font-mono font-medium px-2 py-0.5 rounded-sm bg-surface-2 border border-border">{f.roomNumber}</span> },
-    { key: 'total', header: 'Total', align: 'right', sortable: true, render: (f) => <span className="font-mono text-foreground">{formatINR(folioTotal(f))}</span> },
-    { key: 'balance', header: 'Balance Due', align: 'right', sortable: true, render: (f) => <span className="font-mono font-semibold text-foreground">{formatINR(folioBalance(f))}</span> },
+    { key: 'total', header: 'Total', align: 'right', render: (f) => <span className="font-mono text-foreground">{formatINR(folioTotal(f))}</span> },
+    { key: 'balance', header: 'Balance Due', align: 'right', render: (f) => <span className="font-mono font-semibold text-foreground">{formatINR(folioBalance(f))}</span> },
     { key: 'status', header: 'Status', sortable: true, render: (f) => <span className={`px-2 py-0.5 rounded-full text-caption font-medium uppercase border ${STATUS_COLORS[f.status]}`}>{f.status}</span> },
   ];
 

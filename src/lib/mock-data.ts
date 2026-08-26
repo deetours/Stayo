@@ -204,6 +204,6 @@ export interface MockMaintenanceTicket {
 
 export const mockMaintenanceTickets: MockMaintenanceTicket[] = [
   { id: 'MT-901', roomNumber: room204Alert.roomNumber, title: 'Bathroom leak', detail: room204Alert.detail, status: 'reported', priority: 'urgent', reportedAt: '12 min ago' },
-  { id: 'MT-902', roomNumber: '105', title: 'AC not cooling', detail: 'Guest reports the AC unit is running but not cooling the room.', status: 'in-progress', priority: 'high', reportedAt: '1 hr ago', assignee: { name: 'Manoj K.', initials: 'MK' } },
+  { id: 'MT-902', roomNumber: '105', title: 'AC not cooling', detail: 'Guest reports the AC unit is running but not cooling the room.', status: 'resolved', priority: 'high', reportedAt: '1 hr ago', assignee: { name: 'Manoj K.', initials: 'MK' } },
   { id: 'MT-903', roomNumber: '303', title: 'Bathroom tap dripping', detail: 'Slow drip reported by housekeeping during turnover.', status: 'resolved', priority: 'low', reportedAt: 'Yesterday', assignee: { name: 'Rahul V.', initials: 'RV' } },
 ];

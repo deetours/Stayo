@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { LogIn, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
@@ -117,8 +118,8 @@ export default function FrontDeskPage() {
         onFilterChange={setFilter}
         onRowClick={openDrawer}
         actions={[
-          { label: 'Check In', onClick: handleCheckIn },
-          { label: 'Check Out', onClick: handleCheckOut },
+          { label: 'Check In', icon: <LogIn className="w-4 h-4" />, onClick: handleCheckIn },
+          { label: 'Check Out', icon: <LogOut className="w-4 h-4" />, onClick: handleCheckOut },
         ]}
         emptyTitle="Nothing due right now"
         emptyDescription="No arrivals, departures, or in-house guests match this filter."
