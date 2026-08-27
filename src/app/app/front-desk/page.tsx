@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
-import { mockReservations, mockRooms, MockReservation, ReservationStatus } from '@/lib/mock-data';
+import { usePropertyData, MockReservation, MockRoom, ReservationStatus } from '@/lib/mock-data';
+import { usePropertyStore } from '@/lib/property-store';
 
 const STATUS_COLORS: Record<ReservationStatus, string> = {
   'checked-in': 'bg-status-ok/10 text-status-ok border-status-ok/30',
@@ -15,8 +16,8 @@ const STATUS_COLORS: Record<ReservationStatus, string> = {
   cancelled: 'bg-status-crit/10 text-status-crit border-status-crit/30',
 };
 
-function roomReadiness(roomNumber: string): { label: string; className: string } {
-  const room = mockRooms.find((r) => r.number === roomNumber);
+function roomReadiness(roomNumber: string, rooms: MockRoom[]): { label: string; className: string } {
+  const room = rooms.find((r) => r.number === roomNumber);
   if (!room || room.status === 'available') {
     return { label: 'Room ready', className: 'text-status-ok border-status-ok/30 bg-status-ok/5' };
   }
@@ -32,6 +33,12 @@ const drawerTabs: TabItem[] = [
 ];
 
 export default function FrontDeskPage() {
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
+  return <FrontDeskPageContent key={activePropertyId} />;
+}
+
+function FrontDeskPageContent() {
+  const { mockReservations, mockRooms, meta } = usePropertyData();
   const { state: reservations, performAction } = useOptimisticAction<MockReservation[]>(mockReservations);
   const [filter, setFilter] = useState('arrivals');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -92,8 +99,8 @@ export default function FrontDeskPage() {
       key: 'readiness',
       header: 'Room Status',
       render: (r) => (
-        <span className={`text-body-sm font-medium ${roomReadiness(r.roomNumber).className.split(' ')[0]}`}>
-          {roomReadiness(r.roomNumber).label}
+        <span className={`text-body-sm font-medium ${roomReadiness(r.roomNumber, mockRooms).className.split(' ')[0]}`}>
+          {roomReadiness(r.roomNumber, mockRooms).label}
         </span>
       ),
     },
@@ -105,7 +112,7 @@ export default function FrontDeskPage() {
       <div>
         <h1 className="text-heading-lg font-semibold tracking-tight text-foreground">Front Desk</h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          Today&apos;s arrivals, departures, and in-house guests for Off The Trail — Dalhousie.
+          Today&apos;s arrivals, departures, and in-house guests for {meta.name}.
         </p>
       </div>
 
@@ -159,8 +166,8 @@ export default function FrontDeskPage() {
                 <div className="text-body-lg font-medium text-foreground mt-0.5">{selected.channel}</div>
               </div>
             </div>
-            <div className={`p-3 rounded-md border text-body-sm font-medium ${roomReadiness(selected.roomNumber).className}`}>
-              {roomReadiness(selected.roomNumber).label}
+            <div className={`p-3 rounded-md border text-body-sm font-medium ${roomReadiness(selected.roomNumber, mockRooms).className}`}>
+              {roomReadiness(selected.roomNumber, mockRooms).label}
             </div>
           </div>
         )}

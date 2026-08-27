@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
-import { mockFolios, MockFolio, FolioStatus } from '@/lib/mock-data';
+import { usePropertyData, MockFolio, FolioStatus } from '@/lib/mock-data';
+import { usePropertyStore } from '@/lib/property-store';
 
 const STATUS_COLORS: Record<FolioStatus, string> = {
   outstanding: 'bg-status-crit/10 text-status-crit border-status-crit/30',
@@ -24,6 +25,12 @@ function formatINR(amount: number): string {
 }
 
 export default function BillingPage() {
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
+  return <BillingPageContent key={activePropertyId} />;
+}
+
+function BillingPageContent() {
+  const { mockFolios, meta } = usePropertyData();
   const { state: folios, performAction } = useOptimisticAction<MockFolio[]>(mockFolios);
   const [filter, setFilter] = useState('outstanding');
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -74,7 +81,7 @@ export default function BillingPage() {
       <div>
         <h1 className="text-heading-lg font-semibold tracking-tight text-foreground">Billing &amp; Folios</h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          Guest folios and outstanding balances for Off The Trail — Dalhousie.
+          Guest folios and outstanding balances for {meta.name}.
         </p>
       </div>
 
