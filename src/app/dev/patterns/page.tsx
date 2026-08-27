@@ -8,9 +8,10 @@ import { AgentPanel, ChatMessage } from '@/components/patterns/AgentPanel';
 import { ApprovalFlow, ApprovalItem } from '@/components/patterns/ApprovalFlow';
 import { EmptyState, TableSkeleton, BoardSkeleton, ErrorState } from '@/components/patterns/StateContainers';
 import { Sliders, RefreshCw, Layers, Table as TableIcon, Layout, Bot, CheckCircle } from 'lucide-react';
-import { mockReservations, mockHousekeepingTasks, MockReservation } from '@/lib/mock-data';
+import { usePropertyData, MockReservation } from '@/lib/mock-data';
 
 export default function PatternsDevPage() {
+  const { mockReservations, mockHousekeepingTasks } = usePropertyData();
   const [activeSection, setActiveSection] = useState<'table' | 'board' | 'drawer' | 'agent' | 'approval' | 'states'>('table');
 
   // State toggles
