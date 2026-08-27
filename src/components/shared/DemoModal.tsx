@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -39,15 +40,6 @@ export function DemoModal() {
     return () => window.removeEventListener("open-demo-modal", handleOpen);
   }, []);
 
-  // Close on escape
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    if (isOpen) window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
-  }, [isOpen]);
-
   const close = () => {
     setIsOpen(false);
     setTimeout(() => {
@@ -78,22 +70,16 @@ export function DemoModal() {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-      <div 
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={close}
-      />
-      
-      <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <button 
-          onClick={close}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-hover text-foreground/50 hover:text-foreground transition-colors z-10"
-        >
+    <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
+      <DialogContent
+        showCloseButton={false}
+        className="top-1/2 -translate-y-1/2 max-w-lg rounded-2xl border-transparent shadow-2xl p-0"
+      >
+        <DialogClose className="absolute top-4 right-4 p-2 rounded-full hover:bg-surface-hover text-foreground/50 hover:text-foreground transition-colors z-10">
           <X className="w-5 h-5" />
-        </button>
+          <span className="sr-only">Close</span>
+        </DialogClose>
 
         {isSuccess ? (
           <div className="p-12 text-center flex flex-col items-center">
@@ -102,20 +88,19 @@ export function DemoModal() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-semibold mb-2">Request Received</h2>
+            <DialogTitle className="text-2xl font-semibold mb-2 text-center">Request Received</DialogTitle>
             <p className="text-foreground/70 mb-8">
               Thanks for your interest in StayO. Our team will review your details and reach out shortly to schedule your demo.
             </p>
-            <button
-              onClick={close}
-              className="px-6 py-2.5 bg-surface-hover hover:bg-border rounded-full font-medium transition-colors"
-            >
-              Close
-            </button>
+            <DialogClose asChild>
+              <button className="px-6 py-2.5 bg-surface-hover hover:bg-border rounded-full font-medium transition-colors">
+                Close
+              </button>
+            </DialogClose>
           </div>
         ) : (
           <div className="p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-semibold mb-2">See StayO in action</h2>
+            <DialogTitle className="text-2xl font-semibold mb-2">See StayO in action</DialogTitle>
             <p className="text-foreground/60 text-sm mb-8">
               Tell us a bit about your property, and we'll show you how StayO can run it.
             </p>
@@ -134,7 +119,7 @@ export function DemoModal() {
                   />
                   {errors.name && <p className="text-[10px] text-red-400">{errors.name.message}</p>}
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-foreground/80">Work Email *</label>
                   <input
@@ -244,7 +229,7 @@ export function DemoModal() {
             </form>
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

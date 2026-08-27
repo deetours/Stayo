@@ -5,9 +5,11 @@ import { LogIn, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
+import { Button } from '@/components/ui/button';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
 import { usePropertyData, MockReservation, MockRoom, ReservationStatus } from '@/lib/mock-data';
 import { usePropertyStore } from '@/lib/property-store';
+import { useRowFlash } from '@/hooks/use-row-flash';
 
 const STATUS_COLORS: Record<ReservationStatus, string> = {
   'checked-in': 'bg-status-ok/10 text-status-ok border-status-ok/30',
@@ -44,6 +46,7 @@ function FrontDeskPageContent() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<MockReservation | null>(null);
   const [drawerTab, setDrawerTab] = useState('overview');
+  const { containerRef, flashRow } = useRowFlash();
 
   const filterChips: FilterChip[] = [
     { id: 'arrivals', label: 'Arrivals Today', count: reservations.filter((r) => r.checkIn === 'Today' && r.status !== 'cancelled').length },
@@ -75,6 +78,7 @@ function FrontDeskPageContent() {
       (prev) => prev.map((r) => (r.id === item.id ? { ...r, status: 'checked-in' as const } : r)),
       async () => { await new Promise((res) => setTimeout(res, 300)); }
     );
+    flashRow(item.id);
     toast.success(`${item.guestName} checked in — Room ${item.roomNumber}`);
   };
 
@@ -88,6 +92,7 @@ function FrontDeskPageContent() {
       (prev) => prev.map((r) => (r.id === item.id ? { ...r, status: 'checked-out' as const } : r)),
       async () => { await new Promise((res) => setTimeout(res, 300)); }
     );
+    flashRow(item.id);
     toast.success(`${item.guestName} checked out — Room ${item.roomNumber}`);
   };
 
@@ -116,21 +121,23 @@ function FrontDeskPageContent() {
         </p>
       </div>
 
-      <DataTable<MockReservation>
-        data={filtered}
-        columns={columns}
-        keyExtractor={(r) => r.id}
-        filterChips={filterChips}
-        activeFilter={filter}
-        onFilterChange={setFilter}
-        onRowClick={openDrawer}
-        actions={[
-          { label: 'Check In', icon: <LogIn className="w-4 h-4" />, onClick: handleCheckIn },
-          { label: 'Check Out', icon: <LogOut className="w-4 h-4" />, onClick: handleCheckOut },
-        ]}
-        emptyTitle="Nothing due right now"
-        emptyDescription="No arrivals, departures, or in-house guests match this filter."
-      />
+      <div ref={containerRef}>
+        <DataTable<MockReservation>
+          data={filtered}
+          columns={columns}
+          keyExtractor={(r) => r.id}
+          filterChips={filterChips}
+          activeFilter={filter}
+          onFilterChange={setFilter}
+          onRowClick={openDrawer}
+          actions={[
+            { label: 'Check In', icon: <LogIn className="w-4 h-4" />, onClick: handleCheckIn, variant: 'primary' },
+            { label: 'Check Out', icon: <LogOut className="w-4 h-4" />, onClick: handleCheckOut, variant: 'primary' },
+          ]}
+          emptyTitle="Nothing due right now"
+          emptyDescription="No arrivals, departures, or in-house guests match this filter."
+        />
+      </div>
 
       <DetailDrawer
         isOpen={drawerOpen}
@@ -146,12 +153,9 @@ function FrontDeskPageContent() {
           </span>
         )}
         footerActions={
-          <button
-            onClick={() => setDrawerOpen(false)}
-            className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-          >
+          <Button variant="secondary" onClick={() => setDrawerOpen(false)}>
             Close
-          </button>
+          </Button>
         }
       >
         {drawerTab === 'overview' && selected && (

@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { AgentPanel, ChatMessage } from '@/components/patterns/AgentPanel';
 import { ApprovalFlow, ApprovalItem } from '@/components/patterns/ApprovalFlow';
 import { EmptyState, TableSkeleton, BoardSkeleton, ErrorState } from '@/components/patterns/StateContainers';
@@ -36,17 +38,13 @@ export default function PatternsDevPage() {
       header: 'Status',
       sortable: true,
       render: (r) => {
-        const colors = {
-          'checked-in': 'bg-status-ok/10 text-status-ok border-status-ok/30',
-          'confirmed': 'bg-status-info/10 text-status-info border-status-info/30',
-          'checked-out': 'bg-surface-2 text-muted-foreground border-border',
-          'cancelled': 'bg-status-crit/10 text-status-crit border-status-crit/30',
-        };
-        return (
-          <span className={`px-2 py-0.5 rounded-full text-caption font-medium uppercase border ${colors[r.status]}`}>
-            {r.status}
-          </span>
-        );
+        const variants = {
+          'checked-in': 'ok',
+          confirmed: 'info',
+          'checked-out': 'neutral',
+          cancelled: 'crit',
+        } as const;
+        return <Badge variant={variants[r.status]}>{r.status}</Badge>;
       },
     },
     { key: 'channel', header: 'Channel', sortable: true, render: (r) => <span className="text-body-sm text-muted-foreground">{r.channel}</span> },
@@ -434,12 +432,9 @@ export default function PatternsDevPage() {
         }
         footerActions={
           <>
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-            >
+            <Button variant="secondary" onClick={() => setDrawerOpen(false)}>
               Close
-            </button>
+            </Button>
             <button
               onClick={() => {
                 alert('Saved changes');

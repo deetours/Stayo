@@ -96,6 +96,72 @@ export interface MockFolio {
   status: FolioStatus;
 }
 
+export type PaymentStatus = 'success' | 'failed' | 'pending' | 'refunded';
+
+export interface MockPayment {
+  id: string;
+  date: string;
+  guestName: string;
+  amount: number;
+  method: string;
+  status: PaymentStatus;
+  folioId: string;
+}
+
+export interface MockRate {
+  id: string;
+  roomType: string;
+  baseRate: number;
+  currentRate: number;
+  occupancy: number;
+  status: 'standard' | 'surge' | 'discount';
+}
+
+export type OrderStatus = 'pending' | 'preparing' | 'delivered';
+
+export interface MockRestaurantOrder {
+  id: string;
+  tableOrRoom: string;
+  guestName: string;
+  items: string;
+  total: number;
+  status: OrderStatus;
+  time: string;
+}
+
+export interface MockExperienceBooking {
+  id: string;
+  experienceName: string;
+  guestName: string;
+  date: string;
+  pax: number;
+  status: 'confirmed' | 'completed' | 'cancelled';
+}
+
+export interface MockMessage {
+  id: string;
+  guestName: string;
+  channel: 'WhatsApp' | 'Email';
+  preview: string;
+  time: string;
+  unread: boolean;
+}
+
+export interface MockStaff {
+  id: string;
+  name: string;
+  role: string;
+  status: 'active' | 'offline' | 'on-leave';
+  shift: string;
+}
+
+export interface MockChannel {
+  id: string;
+  name: string;
+  syncStatus: 'synced' | 'syncing' | 'error';
+  lastSync: string;
+}
+
 export type ServiceRequestStatus = 'open' | 'in-progress' | 'resolved';
 export type ServiceRequestCategory = 'Housekeeping' | 'Maintenance' | 'F&B' | 'Concierge';
 
@@ -137,6 +203,13 @@ export interface PropertyDataset {
   mockMaintenanceTickets: MockMaintenanceTicket[];
   signatureIncident: RoomAlert;
   activityLog: ActivityLogEntry[];
+  mockPayments: MockPayment[];
+  mockRates: MockRate[];
+  mockOrders: MockRestaurantOrder[];
+  mockExperiences: MockExperienceBooking[];
+  mockMessages: MockMessage[];
+  mockStaff: MockStaff[];
+  mockChannels: MockChannel[];
 }
 
 function computeRoomStatusCounts(rooms: MockRoom[]): Record<RoomStatus, number> {
@@ -261,6 +334,47 @@ const offTheTrailActivityLog: ActivityLogEntry[] = [
   { id: 'ott-act-4', message: 'Bathroom leak reported for Room 204 by front desk', tone: 'warn', timestamp: '12 min ago' },
 ];
 
+const offTheTrailPayments: MockPayment[] = [
+  { id: 'PAY-1001', date: 'Today, 09:15 AM', guestName: 'Sarah Jenkins', amount: 12400, method: 'Credit Card', status: 'success', folioId: 'FOL-445' },
+  { id: 'PAY-1002', date: 'Today, 10:30 AM', guestName: 'Aarav Sharma', amount: 14200, method: 'UPI', status: 'success', folioId: 'FOL-442' },
+  { id: 'PAY-1003', date: 'Yesterday', guestName: 'Vikram Mehta', amount: 18000, method: 'Bank Transfer', status: 'pending', folioId: 'FOL-444' },
+  { id: 'PAY-1004', date: 'Today, 11:45 AM', guestName: 'Elena Rostova', amount: 22500, method: 'Credit Card', status: 'failed', folioId: 'FOL-443' },
+];
+
+const offTheTrailRates: MockRate[] = [
+  { id: 'RT-1', roomType: 'Deluxe Pine Suite', baseRate: 8500, currentRate: 10200, occupancy: 85, status: 'surge' },
+  { id: 'RT-2', roomType: 'Forest Suite', baseRate: 9500, currentRate: 9500, occupancy: 60, status: 'standard' },
+  { id: 'RT-3', roomType: 'Valley View Villa', baseRate: 14000, currentRate: 12500, occupancy: 40, status: 'discount' },
+  { id: 'RT-4', roomType: 'Attic Loft', baseRate: 11000, currentRate: 11000, occupancy: 70, status: 'standard' },
+];
+
+const offTheTrailOrders: MockRestaurantOrder[] = [
+  { id: 'ORD-101', tableOrRoom: 'Table 4', guestName: 'Walk-in', items: '2x Latte, 1x Croissant', total: 650, status: 'delivered', time: '10:15 AM' },
+  { id: 'ORD-102', tableOrRoom: 'Room 102', guestName: 'Aarav Sharma', items: '1x Club Sandwich, 1x Fries', total: 850, status: 'pending', time: '11:30 AM' },
+];
+
+const offTheTrailExperiences: MockExperienceBooking[] = [
+  { id: 'EXP-1', experienceName: 'Guided Pine Trail Trek', guestName: 'Elena Rostova', date: 'Tomorrow', pax: 1, status: 'confirmed' },
+  { id: 'EXP-2', experienceName: 'Evening Bonfire & BBQ', guestName: 'Vikram Mehta', date: 'Today', pax: 2, status: 'confirmed' },
+];
+
+const offTheTrailMessages: MockMessage[] = [
+  { id: 'MSG-1', guestName: 'Sarah Jenkins', channel: 'WhatsApp', preview: 'Can we get extra towels?', time: '10 min ago', unread: true },
+  { id: 'MSG-2', guestName: 'Aarav Sharma', channel: 'WhatsApp', preview: 'We will be arriving late.', time: '1 hour ago', unread: false },
+];
+
+const offTheTrailStaff: MockStaff[] = [
+  { id: 'STF-1', name: 'Sunita D.', role: 'Housekeeping', status: 'active', shift: 'Morning (08:00 - 16:00)' },
+  { id: 'STF-2', name: 'Rahul V.', role: 'Maintenance', status: 'active', shift: 'Morning (08:00 - 16:00)' },
+  { id: 'STF-3', name: 'Amit P.', role: 'Front Desk', status: 'offline', shift: 'Evening (16:00 - 00:00)' },
+];
+
+const offTheTrailChannels: MockChannel[] = [
+  { id: 'CH-1', name: 'Booking.com', syncStatus: 'synced', lastSync: '2 mins ago' },
+  { id: 'CH-2', name: 'Airbnb', syncStatus: 'synced', lastSync: '5 mins ago' },
+  { id: 'CH-3', name: 'Expedia', syncStatus: 'error', lastSync: '1 hour ago' },
+];
+
 // ---------------------------------------------------------------------------
 // Pine & Peaks Homestay (Homestay, 6 rooms)
 // ---------------------------------------------------------------------------
@@ -322,6 +436,37 @@ const pinePeaksActivityLog: ActivityLogEntry[] = [
   { id: 'pp-act-4', message: 'Water heater failure reported for Room 6', tone: 'warn', timestamp: '20 min ago' },
 ];
 
+const pinePeaksPayments: MockPayment[] = [
+  { id: 'PAY-2001', date: 'Today, 08:00 AM', guestName: 'Neha Kapoor', amount: 4500, method: 'UPI', status: 'success', folioId: 'FOL-PP01' },
+  { id: 'PAY-2002', date: 'Yesterday', guestName: 'George Abraham', amount: 7500, method: 'Credit Card', status: 'success', folioId: 'FOL-PP03' },
+];
+
+const pinePeaksRates: MockRate[] = [
+  { id: 'RT-P1', roomType: 'Garden Room', baseRate: 4500, currentRate: 4500, occupancy: 50, status: 'standard' },
+  { id: 'RT-P2', roomType: 'Mountain View Room', baseRate: 5500, currentRate: 6500, occupancy: 90, status: 'surge' },
+  { id: 'RT-P3', roomType: 'Family Suite', baseRate: 7500, currentRate: 7500, occupancy: 60, status: 'standard' },
+];
+
+const pinePeaksOrders: MockRestaurantOrder[] = [
+  { id: 'ORD-201', tableOrRoom: 'Room 1', guestName: 'Neha Kapoor', items: '1x Masala Chai', total: 150, status: 'preparing', time: 'Just now' },
+];
+
+const pinePeaksExperiences: MockExperienceBooking[] = [
+  { id: 'EXP-P1', experienceName: 'Village Walk', guestName: 'Thomas Reid', date: 'Tomorrow', pax: 2, status: 'confirmed' },
+];
+
+const pinePeaksMessages: MockMessage[] = [
+  { id: 'MSG-P1', guestName: 'Neha Kapoor', channel: 'WhatsApp', preview: 'Is the restaurant open?', time: '20 min ago', unread: true },
+];
+
+const pinePeaksStaff: MockStaff[] = [
+  { id: 'STF-P1', name: 'Divya S.', role: 'Caretaker', status: 'active', shift: 'Full Day' },
+];
+
+const pinePeaksChannels: MockChannel[] = [
+  { id: 'CH-P1', name: 'Airbnb', syncStatus: 'synced', lastSync: '10 mins ago' },
+];
+
 // ---------------------------------------------------------------------------
 // Wildflower Valley Cabin (Cabin Villa, 4 rooms)
 // ---------------------------------------------------------------------------
@@ -380,6 +525,31 @@ const wildflowerActivityLog: ActivityLogEntry[] = [
   { id: 'wv-act-4', message: 'Folio FOL-WV02 opened for Daniel Cho', tone: 'info', timestamp: '5 min ago' },
 ];
 
+const wildflowerPayments: MockPayment[] = [
+  { id: 'PAY-3001', date: 'Yesterday', guestName: 'Karthik Iyer', amount: 9500, method: 'Credit Card', status: 'success', folioId: 'FOL-WV01' },
+  { id: 'PAY-3002', date: 'Today, 10:00 AM', guestName: 'Ayesha Khan', amount: 12000, method: 'UPI', status: 'success', folioId: 'FOL-WV03' },
+];
+
+const wildflowerRates: MockRate[] = [
+  { id: 'RT-W1', roomType: 'Standard Cabin', baseRate: 6000, currentRate: 5000, occupancy: 40, status: 'discount' },
+  { id: 'RT-W2', roomType: 'Deluxe Cabin', baseRate: 9000, currentRate: 9000, occupancy: 60, status: 'standard' },
+];
+
+const wildflowerOrders: MockRestaurantOrder[] = [];
+const wildflowerExperiences: MockExperienceBooking[] = [
+  { id: 'EXP-W1', experienceName: 'River Rafting', guestName: 'Karthik Iyer', date: 'Today', pax: 1, status: 'completed' },
+];
+const wildflowerMessages: MockMessage[] = [];
+
+const wildflowerStaff: MockStaff[] = [
+  { id: 'STF-W1', name: 'Tenzin L.', role: 'Caretaker', status: 'active', shift: 'Morning' },
+];
+
+const wildflowerChannels: MockChannel[] = [
+  { id: 'CH-W1', name: 'Airbnb', syncStatus: 'synced', lastSync: '1 min ago' },
+  { id: 'CH-W2', name: 'Booking.com', syncStatus: 'synced', lastSync: '1 min ago' },
+];
+
 // ---------------------------------------------------------------------------
 // Assembled datasets
 // ---------------------------------------------------------------------------
@@ -398,6 +568,13 @@ export const propertyDatasets: Record<PropertyId, PropertyDataset> = {
     mockMaintenanceTickets: offTheTrailMaintenanceTickets,
     signatureIncident: offTheTrailSignatureIncident,
     activityLog: offTheTrailActivityLog,
+    mockPayments: offTheTrailPayments,
+    mockRates: offTheTrailRates,
+    mockOrders: offTheTrailOrders,
+    mockExperiences: offTheTrailExperiences,
+    mockMessages: offTheTrailMessages,
+    mockStaff: offTheTrailStaff,
+    mockChannels: offTheTrailChannels,
   },
   'pine-peaks': {
     meta: { id: 'pine-peaks', name: 'Pine & Peaks Homestay', type: 'Homestay' },
@@ -412,6 +589,13 @@ export const propertyDatasets: Record<PropertyId, PropertyDataset> = {
     mockMaintenanceTickets: pinePeaksMaintenanceTickets,
     signatureIncident: pinePeaksSignatureIncident,
     activityLog: pinePeaksActivityLog,
+    mockPayments: pinePeaksPayments,
+    mockRates: pinePeaksRates,
+    mockOrders: pinePeaksOrders,
+    mockExperiences: pinePeaksExperiences,
+    mockMessages: pinePeaksMessages,
+    mockStaff: pinePeaksStaff,
+    mockChannels: pinePeaksChannels,
   },
   'wildflower-valley': {
     meta: { id: 'wildflower-valley', name: 'Wildflower Valley Cabin', type: 'Cabin Villa' },
@@ -426,6 +610,13 @@ export const propertyDatasets: Record<PropertyId, PropertyDataset> = {
     mockMaintenanceTickets: wildflowerMaintenanceTickets,
     signatureIncident: wildflowerSignatureIncident,
     activityLog: wildflowerActivityLog,
+    mockPayments: wildflowerPayments,
+    mockRates: wildflowerRates,
+    mockOrders: wildflowerOrders,
+    mockExperiences: wildflowerExperiences,
+    mockMessages: wildflowerMessages,
+    mockStaff: wildflowerStaff,
+    mockChannels: wildflowerChannels,
   },
 };
 

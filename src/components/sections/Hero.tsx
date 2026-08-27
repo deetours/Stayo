@@ -3,16 +3,18 @@
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { MagneticButton } from "@/components/shared/MagneticButton";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const opacity = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? [1, 1] : [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? [0, 0] : [0, 100]);
 
   return (
     <section 
@@ -25,7 +27,7 @@ export function Hero() {
       >
         <div className="max-w-4xl mx-auto text-center mb-12">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
             className="flex items-center justify-center gap-2 mb-8"
@@ -36,8 +38,8 @@ export function Hero() {
             </div>
           </motion.div>
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.h1
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="font-display text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[1.1] mb-8 text-foreground"
@@ -46,8 +48,8 @@ export function Hero() {
             <span className="text-foreground/50">Working as one.</span>
           </motion.h1>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.p
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
             className="text-lg md:text-xl text-foreground/60 mb-10 max-w-2xl mx-auto font-sans font-light"
@@ -56,8 +58,8 @@ export function Hero() {
             StayO connects every guest, room, and task into a single living system.
           </motion.p>
           
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
             className="flex flex-col sm:flex-row items-center justify-center gap-6"

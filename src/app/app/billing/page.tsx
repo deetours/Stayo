@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
+import { Button } from '@/components/ui/button';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
 import { usePropertyData, MockFolio, FolioStatus } from '@/lib/mock-data';
 import { usePropertyStore } from '@/lib/property-store';
+import { useRowFlash } from '@/hooks/use-row-flash';
 
 const STATUS_COLORS: Record<FolioStatus, string> = {
   outstanding: 'bg-status-crit/10 text-status-crit border-status-crit/30',
@@ -35,6 +37,7 @@ function BillingPageContent() {
   const [filter, setFilter] = useState('outstanding');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<MockFolio | null>(null);
+  const { containerRef, flashRow } = useRowFlash();
 
   const filterChips: FilterChip[] = [
     { id: 'all', label: 'All Folios', count: folios.length },
@@ -63,6 +66,7 @@ function BillingPageContent() {
       (prev) => prev.map((f) => (f.id === folio.id ? { ...f, totalPaid: folioTotal(f), status: 'paid' as const } : f)),
       async () => { await new Promise((res) => setTimeout(res, 300)); }
     );
+    flashRow(folio.id);
     toast.success(`Recorded ${formatINR(balance)} payment for ${folio.guestName}`);
     setDrawerOpen(false);
   };
@@ -85,21 +89,23 @@ function BillingPageContent() {
         </p>
       </div>
 
-      <DataTable<MockFolio>
-        data={filtered}
-        columns={columns}
-        keyExtractor={(f) => f.id}
-        filterChips={filterChips}
-        activeFilter={filter}
-        onFilterChange={setFilter}
-        onRowClick={openDrawer}
-        actions={[{ label: 'Record Payment', onClick: (f, e) => { e.stopPropagation(); handleRecordPayment(f); } }]}
-        bulkActions={[
-          { label: 'Send Payment Reminder', onClick: (items) => toast.success(`Reminder sent for ${items.length} folios`) },
-        ]}
-        emptyTitle="No folios found"
-        emptyDescription="No folios match this filter."
-      />
+      <div ref={containerRef}>
+        <DataTable<MockFolio>
+          data={filtered}
+          columns={columns}
+          keyExtractor={(f) => f.id}
+          filterChips={filterChips}
+          activeFilter={filter}
+          onFilterChange={setFilter}
+          onRowClick={openDrawer}
+          actions={[{ label: 'Record Payment', onClick: (f, e) => { e.stopPropagation(); handleRecordPayment(f); }, variant: 'primary' }]}
+          bulkActions={[
+            { label: 'Send Payment Reminder', onClick: (items) => toast.success(`Reminder sent for ${items.length} folios`) },
+          ]}
+          emptyTitle="No folios found"
+          emptyDescription="No folios match this filter."
+        />
+      </div>
 
       <DetailDrawer
         isOpen={drawerOpen}
@@ -113,19 +119,13 @@ function BillingPageContent() {
         )}
         footerActions={
           <>
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-            >
+            <Button variant="secondary" onClick={() => setDrawerOpen(false)}>
               Close
-            </button>
+            </Button>
             {selected && folioBalance(selected) > 0 && (
-              <button
-                onClick={() => handleRecordPayment(selected)}
-                className="px-4 py-2 rounded-sm bg-accent text-accent-foreground text-body-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
-              >
+              <Button onClick={() => handleRecordPayment(selected)}>
                 Record Payment
-              </button>
+              </Button>
             )}
           </>
         }

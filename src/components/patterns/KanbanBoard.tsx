@@ -105,12 +105,19 @@ export function KanbanBoard({
     setDragOverColId(null);
   };
 
+  // Shared by native drag-drop (desktop) and the tap-to-advance menu
+  // (mobile, where drag never fires) so both paths get the same Flip
+  // reflow animation instead of the tap path silently skipping it.
+  const moveItem = (itemId: string, colId: string) => {
+    if (!prefersReducedMotion && containerRef.current) {
+      flipStateRef.current = Flip.getState(containerRef.current.querySelectorAll('[data-flip-id]'));
+    }
+    onItemMove(itemId, colId);
+  };
+
   const handleDrop = (colId: string) => {
     if (draggedItemId) {
-      if (!prefersReducedMotion && containerRef.current) {
-        flipStateRef.current = Flip.getState(containerRef.current.querySelectorAll('[data-flip-id]'));
-      }
-      onItemMove(draggedItemId, colId);
+      moveItem(draggedItemId, colId);
     }
     setDraggedItemId(null);
     setDragOverColId(null);
@@ -191,7 +198,9 @@ export function KanbanBoard({
                         </div>
                         <div className="flex items-center gap-1">
                           {getPriorityBadge(item.priority)}
-                          {/* Mobile quick advance button */}
+                          {/* Mobile quick advance button — the primary touch
+                              interaction (native drag never fires on touch),
+                              sized to the ~44px minimum tap target. */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -199,9 +208,9 @@ export function KanbanBoard({
                                 advanceMobileItemId === item.id ? null : item.id
                               );
                             }}
-                            className="md:hidden p-1 text-muted-foreground hover:text-foreground"
+                            className="md:hidden -m-2 flex min-w-11 min-h-11 items-center justify-center rounded-sm p-2 text-muted-foreground hover:text-foreground hover:bg-surface transition-colors"
                           >
-                            <MoreVertical className="w-3.5 h-3.5" />
+                            <MoreVertical className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -226,10 +235,10 @@ export function KanbanBoard({
                                   key={c.id}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    onItemMove(item.id, c.id);
+                                    moveItem(item.id, c.id);
                                     setAdvanceMobileItemId(null);
                                   }}
-                                  className="text-left text-body-sm px-2 py-1 bg-surface-2 rounded-sm text-foreground hover:bg-accent/20"
+                                  className="text-left text-body-sm px-2 min-h-11 flex items-center bg-surface-2 rounded-sm text-foreground hover:bg-accent/20"
                                 >
                                   {c.title}
                                 </button>

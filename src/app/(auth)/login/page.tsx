@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import { setDevSession } from '@/lib/session';
 import { getVerificationStatus } from '@/lib/verification';
+import { Button } from '@/components/ui/button';
 
 // DEV-only: a browser holding a draft that hasn't been approved yet gets
 // routed back to its verification status instead of straight into the app.
@@ -201,23 +202,20 @@ export default function LoginPage() {
           )}
 
           {/* Submit CTA */}
-          <button
+          <Button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full mt-2 inline-flex items-center justify-center gap-2 py-2.5 rounded-sm bg-accent text-accent-foreground text-body-md font-semibold hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+            loading={isSubmitting}
+            className="w-full mt-2 py-2.5 text-body-md font-semibold"
           >
             {isSubmitting ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full border-2 border-accent-foreground border-t-transparent animate-spin" />
-                Signing in...
-              </span>
+              'Signing in...'
             ) : (
               <>
                 <span>{authMode === 'password' ? 'Sign In to StayO' : 'Send Magic Link'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -232,13 +230,14 @@ export default function LoginPage() {
       </div>
 
       {/* Google SSO button */}
-      <button
+      <Button
         type="button"
+        variant="secondary"
         onClick={() => {
           setDevSession();
           router.push(getLoginRedirect());
         }}
-        className="w-full flex items-center justify-center gap-3 py-2.5 rounded-sm bg-surface-2 border border-border text-body-md font-medium text-foreground hover:bg-border transition-colors cursor-pointer"
+        className="w-full gap-3 py-2.5 text-body-md"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path
@@ -259,7 +258,7 @@ export default function LoginPage() {
           />
         </svg>
         <span>Google Workspace SSO</span>
-      </button>
+      </Button>
 
       {/* Registration Link */}
       <div className="text-center pt-2 text-body-sm text-muted-foreground">

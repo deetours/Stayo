@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowRight, Check, SlidersHorizontal, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export interface DiffField {
   label: string;
@@ -81,26 +82,17 @@ export function ApprovalFlow({
 
             {/* Quick Actions */}
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => onDismiss(item.id)}
-                className="px-3 py-1.5 rounded-sm bg-surface-2 border border-border text-muted-foreground hover:text-foreground text-body-sm font-medium hover:bg-border transition-colors cursor-pointer"
-              >
+              <Button variant="secondary" size="sm" onClick={() => onDismiss(item.id)} className="text-muted-foreground hover:text-foreground">
                 Dismiss
-              </button>
-              <button
-                onClick={() => onAdjust(item.id)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-              >
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => onAdjust(item.id)}>
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Adjust
-              </button>
-              <button
-                onClick={() => onApprove(item.id)}
-                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-sm bg-accent text-accent-foreground text-body-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
-              >
+              </Button>
+              <Button size="sm" onClick={() => onApprove(item.id)}>
                 <Check className="w-4 h-4" />
                 Approve
-              </button>
+              </Button>
             </div>
           </div>
 

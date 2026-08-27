@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
+import { Button } from '@/components/ui/button';
 import { usePropertyData, MockGuest } from '@/lib/mock-data';
 
 const columns: Column<MockGuest>[] = [
@@ -90,12 +91,9 @@ export default function GuestsPage() {
           <span className="font-mono text-caption px-2 py-0.5 rounded-full bg-vip/15 text-vip border border-vip/30 uppercase">VIP</span>
         )}
         footerActions={
-          <button
-            onClick={() => setDrawerOpen(false)}
-            className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-          >
+          <Button variant="secondary" onClick={() => setDrawerOpen(false)}>
             Close
-          </button>
+          </Button>
         }
       >
         {drawerTab === 'overview' && selected && (

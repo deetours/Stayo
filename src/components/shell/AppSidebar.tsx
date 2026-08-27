@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
 import { usePropertyData } from '@/lib/mock-data';
 import { isRouteBuilt } from '@/lib/routes';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import {
   LayoutDashboard,
@@ -139,13 +141,14 @@ function SidebarBody({ collapsed, onToggleCollapse, onNavigate }: SidebarBodyPro
           </Link>
 
           {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              className="p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
-              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onToggleCollapse}>
+                  {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">{collapsed ? 'Expand sidebar' : 'Collapse sidebar'}</TooltipContent>
+            </Tooltip>
           )}
         </div>
 

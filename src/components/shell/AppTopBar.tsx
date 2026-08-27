@@ -17,6 +17,15 @@ import { gsap } from '@/lib/gsap';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { usePropertyStore } from '@/lib/property-store';
 import { propertyDatasets, type PropertyMeta } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 // The shell's popovers/banner used to animate with Framer Motion while
 // Kanban/Dashboard reflows used GSAP — two runtimes for the app shell.
@@ -24,9 +33,19 @@ import { propertyDatasets, type PropertyMeta } from '@/lib/mock-data';
 // these simple enter fades move onto it instead, consistent with every
 // other reduced-motion-gated animation in this codebase.
 function useEnterFade(ref: React.RefObject<HTMLElement | null>, open: boolean, prefersReducedMotion: boolean) {
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
+
   useEffect(() => {
+    tweenRef.current?.kill();
     if (!open || !ref.current || prefersReducedMotion) return;
-    gsap.fromTo(ref.current, { opacity: 0, y: 4 }, { opacity: 1, y: 0, duration: 0.15, ease: 'power2.out' });
+    tweenRef.current = gsap.fromTo(
+      ref.current,
+      { opacity: 0, y: 4 },
+      { opacity: 1, y: 0, duration: 0.15, ease: 'power2.out' }
+    );
+    return () => {
+      tweenRef.current?.kill();
+    };
   }, [open, prefersReducedMotion, ref]);
 }
 
@@ -37,22 +56,16 @@ interface AppTopBarProps {
 
 export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
   const setMobileSidebarOpen = useUIStore((s) => s.setMobileSidebarOpen);
-  const [propertyOpen, setPropertyOpen] = useState(false);
   const activePropertyId = usePropertyStore((s) => s.activePropertyId);
   const setActiveProperty = usePropertyStore((s) => s.setActiveProperty);
   const properties = Object.values(propertyDatasets).map((d) => d.meta);
   const activeProperty = propertyDatasets[activePropertyId].meta;
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isPreviewOnly, setIsPreviewOnly] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  const propertyDropdownRef = useRef<HTMLDivElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
   const bannerRef = useRef<HTMLDivElement>(null);
 
-  useEnterFade(propertyDropdownRef, propertyOpen, prefersReducedMotion);
-  useEnterFade(notificationsRef, notificationsOpen, prefersReducedMotion);
   useEnterFade(bannerRef, !!bannerMessage, prefersReducedMotion);
 
   useEffect(() => {
@@ -61,7 +74,6 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
 
   const handleSelectProperty = (prop: PropertyMeta) => {
     setActiveProperty(prop.id);
-    setPropertyOpen(false);
     setBannerMessage(`You are now viewing ${prop.name}`);
   };
 
@@ -84,62 +96,50 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
       )}
       <header className="h-14 bg-surface border-b border-border px-4 flex items-center justify-between shrink-0 z-20 gap-2">
         {/* Mobile: Sidebar drawer trigger */}
-        <button
-          onClick={() => setMobileSidebarOpen(true)}
-          className="md:hidden p-2 -ml-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer shrink-0"
-          title="Open navigation"
-        >
-          <Menu className="w-4.5 h-4.5" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden -ml-1 shrink-0"
+            >
+              <Menu className="w-4.5 h-4.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Open navigation</TooltipContent>
+        </Tooltip>
 
         {/* Left: Property Switcher */}
-        <div className="relative min-w-0">
-          <button
-            onClick={() => setPropertyOpen(!propertyOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-2 border border-border hover:border-muted-foreground/40 text-foreground transition-all cursor-pointer group"
-          >
-            <div className="w-5 h-5 rounded-sm bg-accent/20 text-accent flex items-center justify-center text-[10px] font-bold">
-              <Building2 className="w-3.5 h-3.5" />
-            </div>
-            <div className="text-left leading-none">
-              <span className="font-semibold text-body-sm block text-foreground truncate max-w-[160px] md:max-w-[200px]">
-                {activeProperty.name}
-              </span>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors ml-0.5" />
-          </button>
-
-          {/* Property Dropdown */}
-          {propertyOpen && (
-            <div
-              ref={propertyDropdownRef}
-              className="absolute top-full left-0 mt-1.5 w-64 bg-surface border border-border rounded-md shadow-[var(--shadow-e2)] p-1 z-50"
-            >
-              <div className="px-2.5 py-1.5 text-caption uppercase tracking-wider text-muted-foreground font-semibold border-b border-border">
-                Select Property Context
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-2 border border-border hover:border-muted-foreground/40 text-foreground transition-all cursor-pointer group min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <div className="w-5 h-5 rounded-sm bg-accent/20 text-accent flex items-center justify-center text-[10px] font-bold shrink-0">
+                <Building2 className="w-3.5 h-3.5" />
               </div>
-              <div className="py-1 space-y-0.5">
-                {properties.map((prop) => (
-                  <button
-                    key={prop.id}
-                    onClick={() => handleSelectProperty(prop)}
-                    className="w-full flex items-center justify-between p-2 rounded-sm text-left hover:bg-surface-2 transition-colors cursor-pointer"
-                  >
-                    <div>
-                      <div className="font-medium text-body-sm text-foreground">{prop.name}</div>
-                      <div className="text-caption text-muted-foreground font-mono">
-                        {prop.type} • {propertyDatasets[prop.id].totalRooms} Rooms
-                      </div>
-                    </div>
-                    {prop.id === activePropertyId && (
-                      <Check className="w-4 h-4 text-accent" />
-                    )}
-                  </button>
-                ))}
+              <div className="text-left leading-none">
+                <span className="font-semibold text-body-sm block text-foreground truncate max-w-[160px] md:max-w-[200px]">
+                  {activeProperty.name}
+                </span>
               </div>
-            </div>
-          )}
-        </div>
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors ml-0.5 shrink-0" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-64">
+            <DropdownMenuLabel className="border-b border-border mb-1">Select Property Context</DropdownMenuLabel>
+            {properties.map((prop) => (
+              <DropdownMenuItem key={prop.id} onSelect={() => handleSelectProperty(prop)} className="justify-between">
+                <div>
+                  <div className="font-medium text-body-sm text-foreground">{prop.name}</div>
+                  <div className="text-caption text-muted-foreground font-mono">
+                    {prop.type} • {propertyDatasets[prop.id].totalRooms} Rooms
+                  </div>
+                </div>
+                {prop.id === activePropertyId && <Check className="w-4 h-4 text-accent shrink-0" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Center: Global Search Bar Trigger (Cmd+K) — collapses to an icon
             below md so search is never lost, only reshaped. */}
@@ -153,13 +153,19 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
             ⌘K
           </span>
         </button>
-        <button
-          onClick={onOpenCmdK}
-          className="md:hidden ml-auto p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors cursor-pointer shrink-0"
-          title="Search"
-        >
-          <Search className="w-4 h-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onOpenCmdK}
+              className="md:hidden ml-auto shrink-0"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Search</TooltipContent>
+        </Tooltip>
 
         {/* Right Action Tools */}
         <div className="flex items-center gap-2.5">
@@ -170,40 +176,33 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
           </div>
 
           {/* Notifications Bell */}
-          <div className="relative">
-            <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors relative cursor-pointer"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-warn" />
-            </button>
-
-            {/* Notification Popover */}
-            {notificationsOpen && (
-              <div
-                ref={notificationsRef}
-                className="absolute top-full right-0 mt-1.5 w-80 bg-surface border border-border rounded-md shadow-[var(--shadow-e2)] p-2 z-50 space-y-2"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                title="Notifications"
               >
-                <div className="flex items-center justify-between pb-1.5 border-b border-border px-1">
-                  <span className="font-semibold text-body-sm text-foreground">Notifications</span>
-                  <span className="text-caption text-accent font-mono">3 Unread</span>
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-status-warn" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 p-2 space-y-2">
+              <div className="flex items-center justify-between pb-1.5 border-b border-border px-1">
+                <span className="font-semibold text-body-sm text-foreground">Notifications</span>
+                <span className="text-caption text-accent font-mono">3 Unread</span>
+              </div>
+              <div className="space-y-1.5 text-body-sm">
+                <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
+                  <div className="font-medium text-foreground text-[13px]">Room 204 Maintenance Reported</div>
+                  <div className="text-caption text-muted-foreground">Bathroom leak reported by guest. Flagged emergency.</div>
                 </div>
-
-                <div className="space-y-1.5 text-body-sm">
-                  <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
-                    <div className="font-medium text-foreground text-[13px]">Room 204 Maintenance Reported</div>
-                    <div className="text-caption text-muted-foreground">Bathroom leak reported by guest. Flagged emergency.</div>
-                  </div>
-                  <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
-                    <div className="font-medium text-foreground text-[13px]">Direct Booking #8923 Confirmed</div>
-                    <div className="text-caption text-muted-foreground">Vikram Mehta · Pine Suite · WhatsApp Concierge</div>
-                  </div>
+                <div className="p-2 bg-surface-2 rounded-sm space-y-0.5">
+                  <div className="font-medium text-foreground text-[13px]">Direct Booking #8923 Confirmed</div>
+                  <div className="text-caption text-muted-foreground">Vikram Mehta · Pine Suite · WhatsApp Concierge</div>
                 </div>
               </div>
-            )}
-          </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Ask StayO Quick Agent Trigger */}
           <button

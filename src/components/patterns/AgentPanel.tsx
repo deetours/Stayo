@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Bot, User, Send, Check, X, Edit3, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export interface ProposedAction {
   id: string;
@@ -160,27 +161,27 @@ export function AgentPanel({
                     {/* Action Card Buttons */}
                     {(!msg.proposedAction.status || msg.proposedAction.status === 'pending') && (
                       <div className="flex items-center gap-2 pt-1">
-                        <button
-                          onClick={() => onApproveAction?.(msg.proposedAction!.id)}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm bg-accent text-accent-foreground text-body-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
-                        >
+                        <Button size="sm" className="flex-1" onClick={() => onApproveAction?.(msg.proposedAction!.id)}>
                           <Check className="w-3.5 h-3.5" />
                           Approve
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="icon"
                           onClick={() => onEditAction?.(msg.proposedAction!.id)}
-                          className="inline-flex items-center justify-center p-1.5 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border transition-colors cursor-pointer"
                           title="Edit"
                         >
                           <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="icon"
                           onClick={() => onRejectAction?.(msg.proposedAction!.id)}
-                          className="inline-flex items-center justify-center p-1.5 rounded-sm bg-surface-2 border border-border text-status-crit hover:bg-status-crit/10 transition-colors cursor-pointer"
+                          className="text-status-crit hover:bg-status-crit/10 hover:text-status-crit"
                           title="Reject"
                         >
                           <X className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -217,16 +218,12 @@ export function AgentPanel({
           placeholder="Ask StayO anything or instruct an agent..."
           className="flex-1 bg-surface-2 border border-border rounded-sm px-3.5 py-2 text-body-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
         />
-        <button
-          type="submit"
-          disabled={!inputText.trim()}
-          className="p-2 rounded-sm bg-accent text-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-        >
+        <Button type="submit" size="icon" disabled={!inputText.trim()}>
           <Send className="w-4 h-4" />
-        </button>
+        </Button>
       </form>
     </div>
   );
-}
+}
 
 

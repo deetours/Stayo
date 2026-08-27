@@ -24,11 +24,16 @@ import { FinalCTA } from "@/components/sections/FinalCTA";
 import { FAQ } from "@/components/sections/FAQ";
 import { DemoModal } from "@/components/shared/DemoModal";
 import { ScrollProgress } from "@/components/shared/ScrollProgress";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Home() {
+  const prefersReducedMotion = useReducedMotion();
+
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -41,17 +46,18 @@ export default function Home() {
 
     lenis.on("scroll", ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    const update = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
+    gsap.ticker.add(update);
 
     gsap.ticker.lagSmoothing(0);
 
     return () => {
       lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
+      gsap.ticker.remove(update);
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <main className="flex min-h-screen flex-col w-full overflow-hidden">

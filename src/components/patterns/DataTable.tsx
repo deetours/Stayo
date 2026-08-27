@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown, MoreHorizontal, Check } from 'lucide-react';
 import { EmptyState, TableSkeleton, ErrorState } from './StateContainers';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 export interface Column<T> {
   key: string;
@@ -31,6 +32,10 @@ export interface DataTableProps<T> {
     icon?: React.ReactNode;
     label: string;
     onClick: (item: T, e: React.MouseEvent) => void;
+    // Consequential ops (Check In, Record Payment) get accent weight so they
+    // read as distinct from a generic "View" — everything defaults to the
+    // existing muted treatment when omitted.
+    variant?: 'primary' | 'default' | 'destructive';
   }[];
   bulkActions?: {
     label: string;
@@ -152,6 +157,12 @@ export function DataTable<T extends Record<string, any>>({
   const hasSelection = selectedKeys.size > 0;
   const selectedItems = data.filter((item) => selectedKeys.has(keyExtractor(item)));
 
+  const actionVariantClass = (variant: 'primary' | 'default' | 'destructive' | undefined, dense: boolean) => {
+    if (variant === 'primary') return 'text-accent hover:bg-accent/10';
+    if (variant === 'destructive') return 'text-status-crit hover:bg-status-crit/10';
+    return `text-muted-foreground hover:text-foreground ${dense ? 'hover:bg-border' : 'hover:bg-surface-2'}`;
+  };
+
   return (
     <div className="w-full space-y-3">
       {/* Top Filter Chips and Bulk Actions Bar */}
@@ -213,6 +224,7 @@ export function DataTable<T extends Record<string, any>>({
           return (
             <div
               key={key}
+              data-row-id={key}
               onClick={() => onRowClick?.(item)}
               className={`p-3.5 rounded-md border shadow-e0 space-y-2.5 ${
                 onRowClick ? 'cursor-pointer' : ''
@@ -233,14 +245,17 @@ export function DataTable<T extends Record<string, any>>({
                 {actions && actions.length > 0 && (
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     {actions.map((act, aIdx) => (
-                      <button
-                        key={aIdx}
-                        title={act.label}
-                        onClick={(e) => act.onClick(item, e)}
-                        className="p-1.5 rounded-sm text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors"
-                      >
-                        {act.icon || <MoreHorizontal className="w-4 h-4" />}
-                      </button>
+                      <Tooltip key={aIdx}>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => act.onClick(item, e)}
+                            className={`p-1.5 rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-surface ${actionVariantClass(act.variant, false)}`}
+                          >
+                            {act.icon || <MoreHorizontal className="w-4 h-4" />}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{act.label}</TooltipContent>
+                      </Tooltip>
                     ))}
                   </div>
                 )}
@@ -325,6 +340,7 @@ export function DataTable<T extends Record<string, any>>({
                 return (
                   <tr
                     key={key}
+                    data-row-id={key}
                     onClick={() => onRowClick?.(item)}
                     className={`group h-[44px] transition-colors duration-fast ${
                       onRowClick ? 'cursor-pointer' : ''
@@ -366,14 +382,17 @@ export function DataTable<T extends Record<string, any>>({
                       >
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 translate-x-1 transition-all duration-fast">
                           {actions.map((act, aIdx) => (
-                            <button
-                              key={aIdx}
-                              title={act.label}
-                              onClick={(e) => act.onClick(item, e)}
-                              className="p-1 rounded-sm text-muted-foreground hover:text-foreground hover:bg-border transition-colors"
-                            >
-                              {act.icon || <MoreHorizontal className="w-4 h-4" />}
-                            </button>
+                            <Tooltip key={aIdx}>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={(e) => act.onClick(item, e)}
+                                  className={`p-1 rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-surface ${actionVariantClass(act.variant, true)}`}
+                                >
+                                  {act.icon || <MoreHorizontal className="w-4 h-4" />}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>{act.label}</TooltipContent>
+                            </Tooltip>
                           ))}
                         </div>
                       </td>

@@ -5,7 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
+import { Button } from '@/components/ui/button';
 import { usePropertyData, MockReservation } from '@/lib/mock-data';
+import { useRowFlash } from '@/hooks/use-row-flash';
 
 const STATUS_COLORS: Record<MockReservation['status'], string> = {
   'checked-in': 'bg-status-ok/10 text-status-ok border-status-ok/30',
@@ -70,6 +72,7 @@ function ReservationsPageContent() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MockReservation | null>(null);
   const [drawerTab, setDrawerTab] = useState('overview');
+  const { containerRef, flashRow } = useRowFlash();
 
   const filterChips: FilterChip[] = [
     { id: 'all', label: 'All Reservations', count: mockReservations.length },
@@ -102,24 +105,26 @@ function ReservationsPageContent() {
         </p>
       </div>
 
-      <DataTable<MockReservation>
-        data={filtered}
-        columns={columns}
-        keyExtractor={(r) => r.id}
-        filterChips={filterChips}
-        activeFilter={filter}
-        onFilterChange={setFilter}
-        onRowClick={openDrawer}
-        actions={[{ label: 'View details', onClick: (item) => openDrawer(item) }]}
-        bulkActions={[
-          { label: 'Batch Check-In', onClick: (items) => toast.success(`Checking in ${items.length} guests`) },
-          { label: 'Cancel Bookings', variant: 'destructive', onClick: (items) => toast.success(`Cancelling ${items.length} reservations`) },
-        ]}
-        emptyTitle="No reservations found"
-        emptyDescription="There are currently no reservations booked for this filter."
-        emptyActionLabel="Add Reservation"
-        onEmptyAction={() => toast('New reservation flow coming soon')}
-      />
+      <div ref={containerRef}>
+        <DataTable<MockReservation>
+          data={filtered}
+          columns={columns}
+          keyExtractor={(r) => r.id}
+          filterChips={filterChips}
+          activeFilter={filter}
+          onFilterChange={setFilter}
+          onRowClick={openDrawer}
+          actions={[{ label: 'View details', onClick: (item) => openDrawer(item) }]}
+          bulkActions={[
+            { label: 'Batch Check-In', onClick: (items) => toast.success(`Checking in ${items.length} guests`) },
+            { label: 'Cancel Bookings', variant: 'destructive', onClick: (items) => toast.success(`Cancelling ${items.length} reservations`) },
+          ]}
+          emptyTitle="No reservations found"
+          emptyDescription="There are currently no reservations booked for this filter."
+          emptyActionLabel="Add Reservation"
+          onEmptyAction={() => toast('New reservation flow coming soon')}
+        />
+      </div>
 
       <DetailDrawer
         isOpen={drawerOpen}
@@ -138,21 +143,18 @@ function ReservationsPageContent() {
         }
         footerActions={
           <>
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-            >
+            <Button variant="secondary" onClick={() => setDrawerOpen(false)}>
               Close
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
+                if (selectedRecord) flashRow(selectedRecord.id);
                 toast.success('Saved changes');
                 setDrawerOpen(false);
               }}
-              className="px-4 py-2 rounded-sm bg-accent text-accent-foreground text-body-sm font-medium hover:opacity-90 transition-opacity cursor-pointer"
             >
               Save Changes
-            </button>
+            </Button>
           </>
         }
       >

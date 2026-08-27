@@ -25,10 +25,11 @@ export function TheDay() {
     
     mm.add("(min-width: 768px)", () => {
       // Timeline line draws down
-      gsap.fromTo(lineRef.current, 
-        { height: "0%" },
-        { 
-          height: "100%",
+      gsap.fromTo(lineRef.current,
+        { scaleY: 0 },
+        {
+          scaleY: 1,
+          transformOrigin: "top",
           ease: "none",
           scrollTrigger: {
             trigger: containerRef.current,
@@ -105,7 +106,7 @@ export function TheDay() {
         <div className="relative border-l-2 border-border/50 md:border-l-0 md:w-full ml-4 md:ml-0 pb-12">
           {/* Central line for desktop that draws down */}
           <div className="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-px w-[2px] bg-border/30">
-            <div ref={lineRef} className="w-full bg-accent origin-top" />
+            <div ref={lineRef} className="w-full h-full bg-accent origin-top" />
           </div>
 
           {/* Morning: Reservations */}

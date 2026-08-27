@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { useGSAP } from "@gsap/react";
-import { Shield, Lock, Clock, Users, RotateCw, Globe2 } from "lucide-react";
+import { Shield, Lock, Clock, Users, RotateCw, Globe2, Check } from "lucide-react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
@@ -37,25 +37,28 @@ const MONITORING_FEED = [
 export function SecurityCompliance() {
   const containerRef = useRef<HTMLDivElement>(null);
   const iconRefs = useRef<(SVGSVGElement | null)[]>([]);
+  const checkRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const tickerTrackRef = useRef<HTMLDivElement>(null);
 
   const prefersReducedMotion = useReducedMotion();
 
-  useGSAP(() => {
+  const { contextSafe } = useGSAP(() => {
     if (prefersReducedMotion) return;
 
     iconRefs.current.forEach((svg, i) => {
       if (!svg) return;
       const shapes = svg.querySelectorAll("path, circle, rect, line, polyline");
       gsap.set(shapes, { drawSVG: "0%" });
-      gsap.to(shapes, {
-        drawSVG: "100%",
-        duration: 0.6,
-        ease: "power2.out",
-        stagger: 0.04,
+
+      const badge = checkRefs.current[i];
+      if (badge) gsap.set(badge, { scale: 0, opacity: 0 });
+
+      const tl = gsap.timeline({
         delay: i * 0.06,
         scrollTrigger: { trigger: containerRef.current, start: "top 75%" },
       });
+      tl.to(shapes, { drawSVG: "100%", duration: 0.6, ease: "power2.out", stagger: 0.04 });
+      if (badge) tl.to(badge, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2.5)" }, "-=0.15");
     });
 
     if (tickerTrackRef.current) {
@@ -74,6 +77,26 @@ export function SecurityCompliance() {
       });
     }
   }, { scope: containerRef, dependencies: [prefersReducedMotion], revertOnUpdate: true });
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--x", `${e.clientX - rect.left}px`);
+    e.currentTarget.style.setProperty("--y", `${e.clientY - rect.top}px`);
+  };
+
+  const handleScanEnter = contextSafe((e: React.MouseEvent<HTMLDivElement>) => {
+    if (prefersReducedMotion) return;
+    const panel = e.currentTarget;
+    const line = panel.querySelector<HTMLDivElement>("[data-scan-line]");
+    if (!line) return;
+    const distance = panel.offsetHeight + 16;
+    gsap
+      .timeline()
+      .set(line, { y: -8, opacity: 0 })
+      .to(line, { opacity: 1, duration: 0.15 })
+      .to(line, { y: distance, duration: 0.7, ease: "power1.inOut" }, "<")
+      .to(line, { opacity: 0, duration: 0.15 }, "-=0.15");
+  });
 
   const feed = prefersReducedMotion ? MONITORING_FEED : [...MONITORING_FEED, ...MONITORING_FEED];
 
@@ -97,20 +120,49 @@ export function SecurityCompliance() {
           {SAFEGUARDS.map((item, i) => (
             <div
               key={item.label}
-              className={cn(
-                "group p-6 rounded-2xl border border-border bg-background flex flex-col gap-3 transition-[transform,border-color,box-shadow] duration-200 ease-out",
-                "hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.5)]"
-              )}
+              className="group relative rounded-[1.7rem] p-px transition-transform duration-300 ease-out hover:-translate-y-1"
             >
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-surface-2 transition-colors duration-200 ease-out group-hover:bg-accent/10">
-                <item.icon
-                  ref={(el) => { iconRefs.current[i] = el; }}
-                  className="w-5 h-5 text-accent transition-transform duration-200 ease-out group-hover:scale-110"
-                  strokeWidth={1.5}
+              <div className="absolute inset-0 rounded-[1.7rem] bg-gradient-to-b from-border to-border/0" />
+              <div className="absolute inset-0 rounded-[1.7rem] bg-gradient-to-b from-accent/60 to-accent/0 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" />
+
+              <div
+                onPointerMove={handlePointerMove}
+                onMouseEnter={handleScanEnter}
+                className={cn(
+                  "relative h-full overflow-hidden rounded-[1.65rem] bg-background p-6 flex flex-col gap-3",
+                  "shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-shadow duration-200 ease-out group-hover:shadow-[0_12px_32px_-16px_rgba(0,0,0,0.5)]"
+                )}
+                style={{ "--x": "50%", "--y": "50%" } as React.CSSProperties}
+              >
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100"
+                  style={{ background: "radial-gradient(280px circle at var(--x) var(--y), rgba(217,119,6,0.12), transparent 70%)" }}
                 />
+                <div
+                  aria-hidden
+                  data-scan-line
+                  className="pointer-events-none absolute inset-x-0 top-0 h-px opacity-0"
+                  style={{ background: "linear-gradient(90deg, transparent, var(--color-accent), transparent)" }}
+                />
+
+                <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-surface-2 to-surface ring-1 ring-border/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-shadow duration-200 ease-out group-hover:ring-accent/40 group-hover:shadow-[0_0_24px_-6px_rgba(217,119,6,0.4)]">
+                  <item.icon
+                    ref={(el) => { iconRefs.current[i] = el; }}
+                    className="w-5 h-5 text-accent transition-transform duration-200 ease-out group-hover:scale-110"
+                    strokeWidth={1.5}
+                  />
+                  <span
+                    ref={(el) => { checkRefs.current[i] = el; }}
+                    className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-status-ok ring-2 ring-background"
+                  >
+                    <Check className="w-2.5 h-2.5 text-background" strokeWidth={3} />
+                  </span>
+                </div>
+
+                <div className="relative font-medium text-foreground">{item.label}</div>
+                <p className="relative text-sm text-foreground/60 leading-relaxed">{item.desc}</p>
               </div>
-              <div className="font-medium text-foreground">{item.label}</div>
-              <p className="text-sm text-foreground/60 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>

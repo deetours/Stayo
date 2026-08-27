@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { X } from 'lucide-react';
 import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
+import { Button } from '@/components/ui/button';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
 import { usePropertyData, MockRoom } from '@/lib/mock-data';
 import { usePropertyStore } from '@/lib/property-store';
@@ -113,12 +114,9 @@ function RoomsPageContent() {
           )
         }
         footerActions={
-          <button
-            onClick={() => setDrawerOpen(false)}
-            className="px-4 py-2 rounded-sm bg-surface-2 border border-border text-foreground hover:bg-border text-body-sm font-medium transition-colors cursor-pointer"
-          >
+          <Button variant="secondary" onClick={() => setDrawerOpen(false)}>
             Close
-          </button>
+          </Button>
         }
       >
         <p className="text-body-sm text-muted-foreground">

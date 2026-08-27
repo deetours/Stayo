@@ -32,7 +32,12 @@ export function CommandPaletteTeaser() {
     gsap.set(rowRefs.current, { autoAlpha: 0.35 });
 
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: containerRef.current, start: "top 65%" },
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 65%",
+        end: "bottom top",
+        toggleActions: "play pause resume pause",
+      },
       repeat: -1,
       repeatDelay: 1.5,
     });

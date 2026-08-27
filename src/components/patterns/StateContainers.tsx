@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
   title: string;
@@ -39,12 +40,9 @@ export function EmptyState({
       <h4 className="text-heading-sm font-medium text-foreground mb-1">{title}</h4>
       <p className="text-body-sm text-muted-foreground max-w-sm mb-6">{description}</p>
       {actionLabel && onAction && (
-        <button
-          onClick={onAction}
-          className="inline-flex items-center justify-center px-4 py-2 text-body-sm font-medium rounded-sm bg-accent text-accent-foreground hover:opacity-90 active:scale-[0.98] transition-all duration-instant cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
-        >
+        <Button onClick={onAction}>
           {actionLabel}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -113,13 +111,10 @@ export function ErrorState({
       <h4 className="text-heading-sm font-medium text-foreground mb-1">{title}</h4>
       <p className="text-body-sm text-muted-foreground max-w-sm mb-4">{message}</p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-body-sm font-medium rounded-sm border border-border bg-surface hover:bg-surface-2 text-foreground transition-all duration-instant cursor-pointer"
-        >
+        <Button variant="outline" size="sm" onClick={onRetry} className="bg-surface hover:bg-surface-2">
           <RefreshCw className="w-3.5 h-3.5" />
           Retry
-        </button>
+        </Button>
       )}
     </div>
   );
