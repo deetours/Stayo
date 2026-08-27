@@ -6,7 +6,8 @@ import { X } from 'lucide-react';
 import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
-import { mockRooms, MockRoom } from '@/lib/mock-data';
+import { usePropertyData, MockRoom } from '@/lib/mock-data';
+import { usePropertyStore } from '@/lib/property-store';
 
 const columns: KanbanColumn[] = [
   { id: 'available', title: 'Available' },
@@ -38,14 +39,16 @@ function toKanbanItem(room: MockRoom): KanbanItem {
 }
 
 export default function RoomsPage() {
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
   return (
     <Suspense fallback={null}>
-      <RoomsPageContent />
+      <RoomsPageContent key={activePropertyId} />
     </Suspense>
   );
 }
 
 function RoomsPageContent() {
+  const { mockRooms, meta } = usePropertyData();
   const router = useRouter();
   const searchParams = useSearchParams();
   const statusParam = searchParams.get('status');
@@ -70,7 +73,7 @@ function RoomsPageContent() {
       <div>
         <h1 className="text-heading-lg font-semibold tracking-tight text-foreground">Rooms</h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          {mockRooms.length} rooms across Off The Trail — Dalhousie. Drag a card to change its status.
+          {mockRooms.length} rooms across {meta.name}. Drag a card to change its status.
         </p>
       </div>
 
