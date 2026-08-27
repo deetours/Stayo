@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bed, BookOpen, User, Sparkles, ClipboardList, Wrench } from 'lucide-react';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { mockReservations, room204Alert } from '@/lib/mock-data';
+import { usePropertyData } from '@/lib/mock-data';
 import { isRouteBuilt } from '@/lib/routes';
 
 interface CommandPaletteProps {
@@ -14,6 +14,7 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
+  const { mockReservations, signatureIncident } = usePropertyData();
 
   // Keyboard shortcut listener (Cmd+K / Ctrl+K) — CommandDialog's own
   // cmdk-driven list already handles ↑/↓/Enter and Esc once it's open.
@@ -42,17 +43,23 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     { label: 'Go to Billing & Folios', href: '/app/billing', icon: BookOpen },
   ];
 
-  const aarav = mockReservations.find((r) => r.id === 'RES-8921')!;
-  const elena = mockReservations.find((r) => r.id === 'RES-8922')!;
+  const featuredReservations = mockReservations.filter((r) => r.arrivalTime || r.departureTime).slice(0, 2);
 
-  // Aarav's and Elena's links below are dynamic detail routes StayO hasn't
-  // built yet — isRouteBuilt only knows static paths, so those two stay
-  // hardcoded unbuilt. Room 204's link points at the (now-built) static
+  // Dynamic detail routes StayO hasn't built yet — isRouteBuilt only knows
+  // static paths, so featured guest/reservation entries stay hardcoded
+  // unbuilt. The signature incident's room links to the (now-built) static
   // Maintenance list page, so it reads off the shared registry instead.
   const quickEntities = [
-    { label: `${aarav.guestName} (Room ${aarav.roomNumber} – In-House)`, href: `/app/guests/${aarav.roomNumber}`, icon: User, type: 'Guest', built: false },
-    { label: `${elena.guestName} (Room ${elena.roomNumber} – Arrival Today)`, href: '/app/reservations/8922', icon: BookOpen, type: 'Reservation', built: false },
-    { label: `Room ${room204Alert.roomNumber} (Maintenance Emergency)`, href: '/app/maintenance', icon: Bed, type: 'Room', built: isRouteBuilt('/app/maintenance') },
+    ...featuredReservations.map((r) => ({
+      label: r.status === 'checked-in'
+        ? `${r.guestName} (Room ${r.roomNumber} – In-House)`
+        : `${r.guestName} (Room ${r.roomNumber} – Arrival Today)`,
+      href: r.status === 'checked-in' ? `/app/guests/${r.roomNumber}` : `/app/reservations/${r.id}`,
+      icon: r.status === 'checked-in' ? User : BookOpen,
+      type: r.status === 'checked-in' ? 'Guest' : 'Reservation',
+      built: false,
+    })),
+    { label: `Room ${signatureIncident.roomNumber} (Maintenance Emergency)`, href: '/app/maintenance', icon: Bed, type: 'Room', built: isRouteBuilt('/app/maintenance') },
   ];
 
   const handleSelect = (href: string, built: boolean) => {
