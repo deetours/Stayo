@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/lib/store';
-import { mockHousekeepingTasks } from '@/lib/mock-data';
+import { usePropertyData } from '@/lib/mock-data';
 import { isRouteBuilt } from '@/lib/routes';
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import {
@@ -46,66 +46,6 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const navGroups: NavGroup[] = [
-  {
-    groupName: 'Overview',
-    items: [
-      { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
-      { label: 'Calendar', href: '/app/calendar', icon: Calendar },
-    ],
-  },
-  {
-    groupName: 'Operations',
-    items: [
-      { label: 'Front Desk', href: '/app/front-desk', icon: ConciergeBell },
-      { label: 'Reservations', href: '/app/reservations', icon: BookOpen },
-      { label: 'Guests', href: '/app/guests', icon: Users },
-    ],
-  },
-  {
-    groupName: 'Property',
-    items: [
-      { label: 'Rooms', href: '/app/rooms', icon: BedDouble },
-      { label: 'Housekeeping', href: '/app/housekeeping', icon: Sparkles, badge: String(mockHousekeepingTasks.length) },
-      { label: 'Maintenance', href: '/app/maintenance', icon: Wrench },
-    ],
-  },
-  {
-    groupName: 'Guest Experience',
-    items: [
-      { label: 'Communications', href: '/app/communications', icon: MessageSquare },
-      { label: 'Service Requests', href: '/app/service-requests', icon: ClipboardList },
-      { label: 'Restaurant', href: '/app/restaurant', icon: UtensilsCrossed },
-      { label: 'Experiences', href: '/app/experiences', icon: Compass },
-    ],
-  },
-  {
-    groupName: 'Revenue',
-    items: [
-      { label: 'Billing', href: '/app/billing', icon: Receipt },
-      { label: 'Payments', href: '/app/payments', icon: CreditCard },
-      { label: 'Rates', href: '/app/rates', icon: Percent },
-      { label: 'Revenue', href: '/app/revenue', icon: TrendingUp },
-      { label: 'Reports', href: '/app/reports', icon: BarChart3 },
-    ],
-  },
-  {
-    groupName: 'AI & Automation',
-    items: [
-      { label: 'AI Command', href: '/app/ai', icon: Bot, badge: 'AI' },
-      { label: 'Automations', href: '/app/automations', icon: Cpu },
-    ],
-  },
-  {
-    groupName: 'Admin',
-    items: [
-      { label: 'Staff', href: '/app/staff', icon: UserCog },
-      { label: 'Channels', href: '/app/channels', icon: Globe2 },
-      { label: 'Settings', href: '/app/settings', icon: Settings },
-    ],
-  },
-];
-
 interface SidebarBodyProps {
   collapsed: boolean;
   onToggleCollapse?: () => void;
@@ -114,8 +54,74 @@ interface SidebarBodyProps {
 
 // Shared between the persistent desktop <aside> and the mobile Sheet drawer
 // so nav structure, built-gating, and styling only live in one place.
+function propertyInitials(name: string): string {
+  const words = name.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w));
+  return words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+}
+
 function SidebarBody({ collapsed, onToggleCollapse, onNavigate }: SidebarBodyProps) {
   const pathname = usePathname();
+  const { mockHousekeepingTasks, meta } = usePropertyData();
+
+  const navGroups: NavGroup[] = [
+    {
+      groupName: 'Overview',
+      items: [
+        { label: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+        { label: 'Calendar', href: '/app/calendar', icon: Calendar },
+      ],
+    },
+    {
+      groupName: 'Operations',
+      items: [
+        { label: 'Front Desk', href: '/app/front-desk', icon: ConciergeBell },
+        { label: 'Reservations', href: '/app/reservations', icon: BookOpen },
+        { label: 'Guests', href: '/app/guests', icon: Users },
+      ],
+    },
+    {
+      groupName: 'Property',
+      items: [
+        { label: 'Rooms', href: '/app/rooms', icon: BedDouble },
+        { label: 'Housekeeping', href: '/app/housekeeping', icon: Sparkles, badge: String(mockHousekeepingTasks.length) },
+        { label: 'Maintenance', href: '/app/maintenance', icon: Wrench },
+      ],
+    },
+    {
+      groupName: 'Guest Experience',
+      items: [
+        { label: 'Communications', href: '/app/communications', icon: MessageSquare },
+        { label: 'Service Requests', href: '/app/service-requests', icon: ClipboardList },
+        { label: 'Restaurant', href: '/app/restaurant', icon: UtensilsCrossed },
+        { label: 'Experiences', href: '/app/experiences', icon: Compass },
+      ],
+    },
+    {
+      groupName: 'Revenue',
+      items: [
+        { label: 'Billing', href: '/app/billing', icon: Receipt },
+        { label: 'Payments', href: '/app/payments', icon: CreditCard },
+        { label: 'Rates', href: '/app/rates', icon: Percent },
+        { label: 'Revenue', href: '/app/revenue', icon: TrendingUp },
+        { label: 'Reports', href: '/app/reports', icon: BarChart3 },
+      ],
+    },
+    {
+      groupName: 'AI & Automation',
+      items: [
+        { label: 'AI Command', href: '/app/ai', icon: Bot, badge: 'AI' },
+        { label: 'Automations', href: '/app/automations', icon: Cpu },
+      ],
+    },
+    {
+      groupName: 'Admin',
+      items: [
+        { label: 'Staff', href: '/app/staff', icon: UserCog },
+        { label: 'Channels', href: '/app/channels', icon: Globe2 },
+        { label: 'Settings', href: '/app/settings', icon: Settings },
+      ],
+    },
+  ];
 
   return (
     <>
@@ -220,12 +226,12 @@ function SidebarBody({ collapsed, onToggleCollapse, onNavigate }: SidebarBodyPro
       {/* User Profile Footer */}
       <div className="p-3 border-t border-border bg-surface-2/40 flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 text-accent font-bold font-mono flex items-center justify-center text-body-sm shrink-0">
-          OT
+          {propertyInitials(meta.name)}
         </div>
         {!collapsed && (
           <div className="overflow-hidden flex-1 leading-tight">
             <div className="font-semibold text-body-sm text-foreground truncate">
-              Off The Trail
+              {meta.name.split('—')[0].trim()}
             </div>
             <div className="text-caption text-muted-foreground font-mono truncate">
               General Manager
