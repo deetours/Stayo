@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
-import { mockServiceRequests } from '@/lib/mock-data';
+import { usePropertyData } from '@/lib/mock-data';
+import { usePropertyStore } from '@/lib/property-store';
 
 const columns: KanbanColumn[] = [
   { id: 'open', title: 'Open' },
@@ -12,17 +13,22 @@ const columns: KanbanColumn[] = [
   { id: 'resolved', title: 'Resolved' },
 ];
 
-const initialItems: KanbanItem[] = mockServiceRequests.map((r) => ({
-  id: r.id,
-  title: r.title,
-  subtitle: `Room ${r.roomNumber} · ${r.guestName}`,
-  status: r.status,
-  priority: r.priority,
-  assignee: r.assignee,
-  meta: r.waitingSince,
-}));
-
 export default function ServiceRequestsPage() {
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
+  return <ServiceRequestsPageContent key={activePropertyId} />;
+}
+
+function ServiceRequestsPageContent() {
+  const { mockServiceRequests } = usePropertyData();
+  const initialItems: KanbanItem[] = mockServiceRequests.map((r) => ({
+    id: r.id,
+    title: r.title,
+    subtitle: `Room ${r.roomNumber} · ${r.guestName}`,
+    status: r.status,
+    priority: r.priority,
+    assignee: r.assignee,
+    meta: r.waitingSince,
+  }));
   const { state: items, performAction } = useOptimisticAction<KanbanItem[]>(initialItems);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<KanbanItem | null>(null);

@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { KanbanBoard, KanbanColumn, KanbanItem } from '@/components/patterns/KanbanBoard';
 import { DetailDrawer } from '@/components/patterns/DetailDrawer';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
-import { mockHousekeepingTasks } from '@/lib/mock-data';
+import { usePropertyData } from '@/lib/mock-data';
+import { usePropertyStore } from '@/lib/property-store';
 
 const columns: KanbanColumn[] = [
   { id: 'dirty', title: 'Dirty' },
@@ -13,17 +14,22 @@ const columns: KanbanColumn[] = [
   { id: 'ready', title: 'Ready' },
 ];
 
-const initialItems: KanbanItem[] = mockHousekeepingTasks.map((t) => ({
-  id: t.id,
-  title: t.roomLabel,
-  subtitle: t.subtitle,
-  status: t.status,
-  priority: t.priority,
-  assignee: t.assignee,
-  meta: t.meta,
-}));
-
 export default function HousekeepingPage() {
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
+  return <HousekeepingPageContent key={activePropertyId} />;
+}
+
+function HousekeepingPageContent() {
+  const { mockHousekeepingTasks } = usePropertyData();
+  const initialItems: KanbanItem[] = mockHousekeepingTasks.map((t) => ({
+    id: t.id,
+    title: t.roomLabel,
+    subtitle: t.subtitle,
+    status: t.status,
+    priority: t.priority,
+    assignee: t.assignee,
+    meta: t.meta,
+  }));
   const { state: items, performAction } = useOptimisticAction<KanbanItem[]>(initialItems);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<KanbanItem | null>(null);
