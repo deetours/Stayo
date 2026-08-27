@@ -32,11 +32,14 @@ export default function Home() {
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if ("scrollRestoration" in window.history) {
-      window.history.scrollRestoration = "manual";
-    }
-    if (!window.location.hash) {
-      window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+      }
+      if (!window.location.hash) {
+        window.scrollTo(0, 0);
+      }
+      ScrollTrigger.clearScrollMemory?.();
     }
   }, []);
 
@@ -52,6 +55,10 @@ export default function Home() {
       wheelMultiplier: 1,
       touchMultiplier: 2,
     });
+
+    if (!window.location.hash) {
+      lenis.scrollTo(0, { immediate: true });
+    }
 
     lenis.on("scroll", ScrollTrigger.update);
 
