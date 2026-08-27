@@ -7,11 +7,17 @@ import { AppTopBar } from '@/components/shell/AppTopBar';
 import { CommandPalette } from '@/components/shell/CommandPalette';
 import { AskStayOPanel } from '@/components/shell/AskStayOPanel';
 import { useUIStore } from '@/lib/store';
+import { usePropertyStore } from '@/lib/property-store';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
   const askStayOOpen = useUIStore((s) => s.askStayOOpen);
   const setAskStayOOpen = useUIStore((s) => s.setAskStayOOpen);
+  const hasHydrated = usePropertyStore((s) => s.hasHydrated);
+
+  if (!hasHydrated) {
+    return <div className="flex h-screen w-screen bg-background" />;
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground font-sans">
