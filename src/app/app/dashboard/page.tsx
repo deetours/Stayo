@@ -4,8 +4,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
-  TrendingUp,
-  AlertCircle,
   Clock,
   Sparkles,
   ArrowRight,
@@ -19,7 +17,8 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { useOptimisticAction } from '@/hooks/useOptimisticAction';
-import { roomStatusCounts, TOTAL_ROOMS, room204Alert } from '@/lib/mock-data';
+import { usePropertyData, PropertyDataset } from '@/lib/mock-data';
+import { usePropertyStore } from '@/lib/property-store';
 import { gsap, useGSAP, Flip } from '@/lib/gsap';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useUIStore } from '@/lib/store';
@@ -36,53 +35,117 @@ interface NeedsAttentionItem {
   linkLabel: string;
 }
 
-const initialNeedsAttention: NeedsAttentionItem[] = [
-  {
-    id: 'na-1',
-    title: '3 rooms awaiting inspection',
-    count: 3,
-    category: 'Housekeeping',
-    urgency: 'warn',
-    link: '/app/housekeeping',
-    linkLabel: 'Housekeeping →',
-  },
-  {
-    id: 'na-2',
-    title: '₹32,400 outstanding across 4 folios',
-    count: 4,
-    category: 'Billing',
-    urgency: 'warn',
-    link: '/app/billing',
-    linkLabel: 'Billing →',
-  },
-  {
-    id: 'na-3',
-    title: '2 guest requests waiting > 20 min',
-    count: 2,
-    category: 'Service requests',
-    urgency: 'crit',
-    link: '/app/service-requests',
-    linkLabel: 'Service requests →',
-  },
-  {
-    id: 'na-4',
-    title: `1 ${room204Alert.title}`,
-    count: 1,
-    category: 'Maintenance',
-    urgency: 'crit',
-    link: '/app/maintenance',
-    linkLabel: 'Maintenance →',
-  },
-  {
-    id: 'na-5',
-    title: '1 booking requires manual confirmation',
-    count: 1,
-    category: 'Reservations',
-    urgency: 'info',
-    link: '/app/reservations',
-    linkLabel: 'Reservations →',
-  },
-];
+function buildNeedsAttention(data: PropertyDataset): NeedsAttentionItem[] {
+  const items: NeedsAttentionItem[] = [];
+
+  const activeHousekeeping = data.mockHousekeepingTasks.filter((t) => t.status !== 'ready');
+  if (activeHousekeeping.length > 0) {
+    items.push({
+      id: 'na-housekeeping',
+      title: `${activeHousekeeping.length} housekeeping task${activeHousekeeping.length === 1 ? '' : 's'} in progress`,
+      count: activeHousekeeping.length,
+      category: 'Housekeeping',
+      urgency: 'warn',
+      link: '/app/housekeeping',
+      linkLabel: 'Housekeeping →',
+    });
+  }
+
+  const unpaidFolios = data.mockFolios.filter((f) => f.status !== 'paid');
+  if (unpaidFolios.length > 0) {
+    const outstanding = unpaidFolios.reduce(
+      (sum, f) => sum + (f.charges.reduce((s, c) => s + c.amount, 0) - f.totalPaid),
+      0
+    );
+    items.push({
+      id: 'na-billing',
+      title: `₹${outstanding.toLocaleString('en-IN')} outstanding across ${unpaidFolios.length} folio${unpaidFolios.length === 1 ? '' : 's'}`,
+      count: unpaidFolios.length,
+      category: 'Billing',
+      urgency: 'warn',
+      link: '/app/billing',
+      linkLabel: 'Billing →',
+    });
+  }
+
+  const openRequests = data.mockServiceRequests.filter((r) => r.status === 'open');
+  if (openRequests.length > 0) {
+    items.push({
+      id: 'na-service',
+      title: `${openRequests.length} guest request${openRequests.length === 1 ? '' : 's'} open`,
+      count: openRequests.length,
+      category: 'Service requests',
+      urgency: 'crit',
+      link: '/app/service-requests',
+      linkLabel: 'Service requests →',
+    });
+  }
+
+  const openTickets = data.mockMaintenanceTickets.filter((t) => t.status !== 'resolved');
+  if (openTickets.length > 0) {
+    const title =
+      openTickets.length === 1
+        ? `1 ${openTickets[0].title} — Room ${openTickets[0].roomNumber}`
+        : `${openTickets.length} maintenance tickets open`;
+    items.push({
+      id: 'na-maintenance',
+      title,
+      count: openTickets.length,
+      category: 'Maintenance',
+      urgency: 'crit',
+      link: '/app/maintenance',
+      linkLabel: 'Maintenance →',
+    });
+  }
+
+  return items;
+}
+
+interface KeyShiftRow {
+  id: string;
+  time: string;
+  kind: 'ARRIVAL' | 'DEPARTURE';
+  guestName: string;
+  roomNumber: string;
+  vip: boolean;
+  statusLabel: string;
+  statusTone: 'crit' | 'ok' | 'muted';
+}
+
+function buildKeyShifts(data: PropertyDataset): KeyShiftRow[] {
+  const rows: KeyShiftRow[] = [];
+  for (const r of data.mockReservations) {
+    const guest = data.mockGuests.find((g) => g.name === r.guestName);
+    const vip = guest?.vip ?? false;
+    const isSignatureRoom = r.roomNumber === data.signatureIncident.roomNumber;
+
+    if (r.arrivalTime) {
+      rows.push({
+        id: `${r.id}-arrival`,
+        time: r.arrivalTime,
+        kind: 'ARRIVAL',
+        guestName: r.guestName,
+        roomNumber: r.roomNumber,
+        vip,
+        statusLabel: isSignatureRoom ? 'Maintenance Delay' : r.status === 'checked-in' ? 'Room Ready ✓' : 'Awaiting Arrival',
+        statusTone: isSignatureRoom ? 'crit' : r.status === 'checked-in' ? 'ok' : 'muted',
+      });
+    }
+    if (r.departureTime) {
+      rows.push({
+        id: `${r.id}-departure`,
+        time: r.departureTime,
+        kind: 'DEPARTURE',
+        guestName: r.guestName,
+        roomNumber: r.roomNumber,
+        vip,
+        statusLabel: r.status === 'checked-out' ? 'Checked Out' : 'Pending Checkout',
+        statusTone: 'muted',
+      });
+    }
+  }
+  return rows.sort((a, b) => a.time.localeCompare(b.time));
+}
 
 const initialRecommendations: ApprovalItem[] = [
   {
@@ -98,11 +161,25 @@ const initialRecommendations: ApprovalItem[] = [
 ];
 
 export default function DashboardPage() {
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
+  return <DashboardPageContent key={activePropertyId} />;
+}
+
+function DashboardPageContent() {
+  const data = usePropertyData();
+  const {
+    meta,
+    totalRooms,
+    roomStatusCounts,
+    mockReservations,
+    mockGuests,
+    activityLog,
+  } = data;
+
   const [dateStr, setDateStr] = useState('Today, 21 Aug 2026');
   const setAskStayOOpen = useUIStore((s) => s.setAskStayOOpen);
 
-  // Optimistic Needs Attention feed
-  const { state: needsAttention, performAction } = useOptimisticAction(initialNeedsAttention);
+  const { state: needsAttention, performAction } = useOptimisticAction(buildNeedsAttention(data));
 
   const { state: recommendations, performAction: performRecommendationAction } =
     useOptimisticAction(initialRecommendations);
@@ -138,13 +215,26 @@ export default function DashboardPage() {
   const kpiStripRef = useRef<HTMLDivElement>(null);
   const kpiValueRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
-  const occupancyPct = Math.round((roomStatusCounts.occupied / TOTAL_ROOMS) * 100);
+  const occupancyPct = Math.round((roomStatusCounts.occupied / totalRooms) * 100);
+  const arrivalsToday = mockReservations.filter((r) => r.checkIn === 'Today' && r.status !== 'cancelled').length;
+  const arrivalsCheckedIn = mockReservations.filter((r) => r.checkIn === 'Today' && r.status === 'checked-in').length;
+  const departuresToday = mockReservations.filter((r) => r.checkOut === 'Today').length;
+  const departuresCompleted = mockReservations.filter((r) => r.checkOut === 'Today' && r.status === 'checked-out').length;
+  const inHouseReservations = mockReservations.filter((r) => r.status === 'checked-in');
+  const inHouseGuests = inHouseReservations.reduce((sum, r) => sum + (r.guestCount ?? 1), 0);
+  const inHouseVips = inHouseReservations.filter((r) => mockGuests.find((g) => g.name === r.guestName)?.vip).length;
+  const revenueToday = mockReservations
+    .filter((r) => r.checkIn === 'Today')
+    .reduce((sum, r) => sum + r.amountValue, 0);
+
+  const keyShifts = buildKeyShifts(data);
+
   const kpiTargets = [
     { value: occupancyPct, decimals: 0, format: (v: number) => `${Math.round(v)}%` },
-    { value: 14, decimals: 0, format: (v: number) => `${Math.round(v)}` },
-    { value: 11, decimals: 0, format: (v: number) => `${Math.round(v)}` },
-    { value: 42, decimals: 0, format: (v: number) => `${Math.round(v)}` },
-    { value: 1.84, decimals: 2, format: (v: number) => `₹${v.toFixed(2)}L` },
+    { value: arrivalsToday, decimals: 0, format: (v: number) => `${Math.round(v)}` },
+    { value: departuresToday, decimals: 0, format: (v: number) => `${Math.round(v)}` },
+    { value: inHouseGuests, decimals: 0, format: (v: number) => `${Math.round(v)}` },
+    { value: revenueToday, decimals: 0, format: (v: number) => `₹${Math.round(v).toLocaleString('en-IN')}` },
   ];
 
   // First-paint polish, added last on purpose — an animated number is only
@@ -190,14 +280,11 @@ export default function DashboardPage() {
     performAction(
       (prev) => prev.filter((item) => item.id !== id),
       async () => {
-        // Mock API call
         await new Promise((res) => setTimeout(res, 400));
       }
     );
   };
 
-  // The dismissed row leaves and the remaining rows resettle upward,
-  // giving useOptimisticAction's instant state update a visual payoff.
   useGSAP(
     () => {
       if (attentionFlipStateRef.current) {
@@ -219,7 +306,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
         <div>
           <h1 className="text-display-md font-bold text-foreground tracking-tight">
-            Off The Trail — Dalhousie
+            {meta.name}
           </h1>
           <p className="text-body-sm text-muted-foreground mt-0.5">
             Command Centre • {dateStr}
@@ -250,7 +337,7 @@ export default function DashboardPage() {
               {prefersReducedMotion ? kpiTargets[0].format(kpiTargets[0].value) : kpiTargets[0].format(0)}
             </span>
           </div>
-          <div className="text-caption text-status-ok font-mono mt-0.5">{roomStatusCounts.occupied} of {TOTAL_ROOMS} Rooms</div>
+          <div className="text-caption text-status-ok font-mono mt-0.5">{roomStatusCounts.occupied} of {totalRooms} Rooms</div>
         </SmartLink>
 
         <SmartLink
@@ -266,7 +353,7 @@ export default function DashboardPage() {
               {prefersReducedMotion ? kpiTargets[1].format(kpiTargets[1].value) : kpiTargets[1].format(0)}
             </span>
           </div>
-          <div className="text-caption text-muted-foreground font-mono mt-0.5">6 Checked In</div>
+          <div className="text-caption text-muted-foreground font-mono mt-0.5">{arrivalsCheckedIn} Checked In</div>
         </SmartLink>
 
         <SmartLink
@@ -282,7 +369,7 @@ export default function DashboardPage() {
               {prefersReducedMotion ? kpiTargets[2].format(kpiTargets[2].value) : kpiTargets[2].format(0)}
             </span>
           </div>
-          <div className="text-caption text-muted-foreground font-mono mt-0.5">9 Completed</div>
+          <div className="text-caption text-muted-foreground font-mono mt-0.5">{departuresCompleted} Completed</div>
         </SmartLink>
 
         <SmartLink
@@ -298,7 +385,7 @@ export default function DashboardPage() {
               {prefersReducedMotion ? kpiTargets[3].format(kpiTargets[3].value) : kpiTargets[3].format(0)}
             </span>
           </div>
-          <div className="text-caption text-accent font-mono mt-0.5">4 VIP Guests</div>
+          <div className="text-caption text-vip font-mono mt-0.5">{inHouseVips} VIP Guest{inHouseVips === 1 ? '' : 's'}</div>
         </SmartLink>
 
         <SmartLink
@@ -314,8 +401,8 @@ export default function DashboardPage() {
               {prefersReducedMotion ? kpiTargets[4].format(kpiTargets[4].value) : kpiTargets[4].format(0)}
             </span>
           </div>
-          <div className="text-caption text-status-ok font-mono mt-0.5 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> +18% vs yesterday
+          <div className="text-caption text-status-ok font-mono mt-0.5">
+            {arrivalsToday} arrival{arrivalsToday === 1 ? '' : 's'} billed today
           </div>
         </SmartLink>
       </div>
@@ -392,41 +479,42 @@ export default function DashboardPage() {
               Today&apos;s Key Shifts &amp; Stays
             </h4>
             <div className="bg-surface border border-border rounded-md divide-y divide-border overflow-hidden">
-              <div className="p-3 flex items-center justify-between text-body-sm">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-mono text-caption px-2 py-0.5 rounded-sm bg-accent/15 text-accent font-semibold">
-                    14:00 ARRIVAL
+              {keyShifts.map((row) => (
+                <div key={row.id} className="p-3 flex items-center justify-between text-body-sm">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`font-mono text-caption px-2 py-0.5 rounded-sm font-semibold ${
+                        row.kind === 'ARRIVAL' ? 'bg-accent/15 text-accent' : 'bg-surface-2 text-muted-foreground'
+                      }`}
+                    >
+                      {row.time} {row.kind}
+                    </span>
+                    <span className="font-medium text-foreground">{row.guestName}</span>
+                    {row.vip && (
+                      <span className="text-caption px-1.5 py-0.2 rounded-full bg-vip/20 text-vip font-bold">
+                        VIP
+                      </span>
+                    )}
+                    <span className="font-mono text-muted-foreground text-caption">Room {row.roomNumber}</span>
+                  </div>
+                  <span
+                    className={`text-caption font-medium ${
+                      row.statusTone === 'crit'
+                        ? 'text-status-crit'
+                        : row.statusTone === 'ok'
+                        ? 'text-status-ok'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {row.statusLabel}
                   </span>
-                  <span className="font-medium text-foreground">Elena Rostova</span>
-                  <span className="font-mono text-muted-foreground text-caption">Room 204</span>
                 </div>
-                <span className="text-caption text-status-crit font-medium">Maintenance Delay</span>
-              </div>
-
-              <div className="p-3 flex items-center justify-between text-body-sm">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-mono text-caption px-2 py-0.5 rounded-sm bg-accent/15 text-accent font-semibold">
-                    15:30 ARRIVAL
-                  </span>
-                  <span className="font-medium text-foreground">Aarav Sharma</span>
-                  <span className="text-caption px-1.5 py-0.2 rounded-full bg-accent/20 text-accent font-bold">
-                    VIP
-                  </span>
-                  <span className="font-mono text-muted-foreground text-caption">Room 102</span>
+              ))}
+              {keyShifts.length === 0 && (
+                <div className="p-4 text-center text-muted-foreground text-body-sm">
+                  No arrivals or departures scheduled right now.
                 </div>
-                <span className="text-caption text-status-ok font-medium">Room Ready ✓</span>
-              </div>
-
-              <div className="p-3 flex items-center justify-between text-body-sm">
-                <div className="flex items-center gap-2.5">
-                  <span className="font-mono text-caption px-2 py-0.5 rounded-sm bg-surface-2 text-muted-foreground font-semibold">
-                    11:00 DEPARTURE
-                  </span>
-                  <span className="font-medium text-foreground">Sarah Jenkins</span>
-                  <span className="font-mono text-muted-foreground text-caption">Room 105</span>
-                </div>
-                <span className="text-caption text-muted-foreground">Checked Out</span>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -470,7 +558,7 @@ export default function DashboardPage() {
 
           {/* Section 7: StayO AI Recommendations */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-accent">
+            <div className="flex items-center gap-2 text-status-info">
               <Bot className="w-4 h-4" />
               <span className="font-semibold text-body-sm">StayO AI Recommendations</span>
             </div>
@@ -493,32 +581,19 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2.5 text-body-sm">
-              <div className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-ok mt-2 shrink-0" />
-                <div>
-                  <span className="font-medium text-foreground">Reservation #8923 created</span>
-                  <span className="text-muted-foreground"> by Concierge Agent via WhatsApp</span>
-                  <div className="text-[11px] font-mono text-muted-foreground/60">4 min ago</div>
+              {activityLog.map((entry) => (
+                <div key={entry.id} className="flex items-start gap-2.5">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${
+                      entry.tone === 'ok' ? 'bg-status-ok' : entry.tone === 'warn' ? 'bg-status-warn' : 'bg-status-info'
+                    }`}
+                  />
+                  <div>
+                    <span className="font-medium text-foreground">{entry.message}</span>
+                    <div className="text-[11px] font-mono text-muted-foreground/60">{entry.timestamp}</div>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-info mt-2 shrink-0" />
-                <div>
-                  <span className="font-medium text-foreground">Room 101 cleaning completed</span>
-                  <span className="text-muted-foreground"> by Sunita D.</span>
-                  <div className="text-[11px] font-mono text-muted-foreground/60">18 min ago</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-warn mt-2 shrink-0" />
-                <div>
-                  <span className="font-medium text-foreground">Folio #442 updated</span>
-                  <span className="text-muted-foreground"> with ₹2,200 Restaurant charge</span>
-                  <div className="text-[11px] font-mono text-muted-foreground/60">32 min ago</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
