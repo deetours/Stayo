@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
-import { mockReservations, MockReservation } from '@/lib/mock-data';
+import { usePropertyData, MockReservation } from '@/lib/mock-data';
 
 const STATUS_COLORS: Record<MockReservation['status'], string> = {
   'checked-in': 'bg-status-ok/10 text-status-ok border-status-ok/30',
@@ -33,14 +33,6 @@ const columns: Column<MockReservation>[] = [
   { key: 'amount', header: 'Total', align: 'right', sortable: true, render: (r) => <span className="font-mono font-semibold text-foreground">{r.amount}</span> },
 ];
 
-const filterChips: FilterChip[] = [
-  { id: 'all', label: 'All Reservations', count: mockReservations.length },
-  { id: 'today', label: 'Arriving Today', count: mockReservations.filter((r) => r.checkIn === 'Today').length },
-  { id: 'departures', label: 'Departing Today', count: mockReservations.filter((r) => r.checkOut === 'Today').length },
-  { id: 'in-house', label: 'In-House', count: mockReservations.filter((r) => r.status === 'checked-in').length },
-  { id: 'cancelled', label: 'Cancelled', count: mockReservations.filter((r) => r.status === 'cancelled').length },
-];
-
 // Maps the ?filter= values the Dashboard's KPI cards link with onto this
 // page's own filter chip ids — so those links actually filter instead of
 // landing on the unfiltered "All Reservations" view.
@@ -65,6 +57,7 @@ export default function ReservationsPage() {
 }
 
 function ReservationsPageContent() {
+  const { mockReservations, meta } = usePropertyData();
   const searchParams = useSearchParams();
   // Lazy initializer so the incoming link's filter applies once, on arrival,
   // without a setState-in-effect render cascade — the chips themselves own
@@ -77,6 +70,14 @@ function ReservationsPageContent() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MockReservation | null>(null);
   const [drawerTab, setDrawerTab] = useState('overview');
+
+  const filterChips: FilterChip[] = [
+    { id: 'all', label: 'All Reservations', count: mockReservations.length },
+    { id: 'today', label: 'Arriving Today', count: mockReservations.filter((r) => r.checkIn === 'Today').length },
+    { id: 'departures', label: 'Departing Today', count: mockReservations.filter((r) => r.checkOut === 'Today').length },
+    { id: 'in-house', label: 'In-House', count: mockReservations.filter((r) => r.status === 'checked-in').length },
+    { id: 'cancelled', label: 'Cancelled', count: mockReservations.filter((r) => r.status === 'cancelled').length },
+  ];
 
   const filtered = mockReservations.filter((r) => {
     if (filter === 'today') return r.checkIn === 'Today';
@@ -97,7 +98,7 @@ function ReservationsPageContent() {
       <div>
         <h1 className="text-heading-lg font-semibold tracking-tight text-foreground">Reservations</h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          All bookings for Off The Trail — Dalhousie, across every channel.
+          All bookings for {meta.name}, across every channel.
         </p>
       </div>
 

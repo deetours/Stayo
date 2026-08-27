@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { DataTable, Column, FilterChip } from '@/components/patterns/DataTable';
 import { DetailDrawer, TabItem } from '@/components/patterns/DetailDrawer';
-import { mockGuests, mockReservations, MockGuest } from '@/lib/mock-data';
+import { usePropertyData, MockGuest } from '@/lib/mock-data';
 
 const columns: Column<MockGuest>[] = [
   {
@@ -13,7 +13,7 @@ const columns: Column<MockGuest>[] = [
     render: (g) => (
       <div className="flex items-center gap-2">
         <span className="font-medium text-foreground">{g.name}</span>
-        {g.vip && <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-accent/20 text-accent font-bold">VIP</span>}
+        {g.vip && <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-vip/20 text-vip font-bold">VIP</span>}
       </div>
     ),
   },
@@ -29,6 +29,7 @@ const drawerTabs: TabItem[] = [
 ];
 
 export default function GuestsPage() {
+  const { mockGuests, mockReservations, meta } = usePropertyData();
   const [filter, setFilter] = useState('all');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<MockGuest | null>(null);
@@ -61,7 +62,7 @@ export default function GuestsPage() {
       <div>
         <h1 className="text-heading-lg font-semibold tracking-tight text-foreground">Guests</h1>
         <p className="text-body-sm text-muted-foreground mt-1">
-          Every guest on file for Off The Trail — Dalhousie.
+          Every guest on file for {meta.name}.
         </p>
       </div>
 
@@ -86,7 +87,7 @@ export default function GuestsPage() {
         activeTab={drawerTab}
         onTabChange={setDrawerTab}
         badge={selected?.vip && (
-          <span className="font-mono text-caption px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/30 uppercase">VIP</span>
+          <span className="font-mono text-caption px-2 py-0.5 rounded-full bg-vip/15 text-vip border border-vip/30 uppercase">VIP</span>
         )}
         footerActions={
           <button
