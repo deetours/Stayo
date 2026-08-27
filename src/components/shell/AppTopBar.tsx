@@ -15,6 +15,8 @@ import { hasDevSession, hasPreviewSession } from '@/lib/session';
 import { useUIStore } from '@/lib/store';
 import { gsap } from '@/lib/gsap';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { usePropertyStore } from '@/lib/property-store';
+import { propertyDatasets, type PropertyMeta } from '@/lib/mock-data';
 
 // The shell's popovers/banner used to animate with Framer Motion while
 // Kanban/Dashboard reflows used GSAP — two runtimes for the app shell.
@@ -33,16 +35,13 @@ interface AppTopBarProps {
   onOpenAskStayO: () => void;
 }
 
-const mockProperties = [
-  { id: 'p1', name: 'Off The Trail — Dalhousie', type: 'Boutique Resort', rooms: 24, active: true },
-  { id: 'p2', name: 'Pine & Peaks Homestay', type: 'Homestay', rooms: 6, active: false },
-  { id: 'p3', name: 'Wildflower Valley Cabin', type: 'Cabin Villa', rooms: 4, active: false },
-];
-
 export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
   const setMobileSidebarOpen = useUIStore((s) => s.setMobileSidebarOpen);
   const [propertyOpen, setPropertyOpen] = useState(false);
-  const [activeProperty, setActiveProperty] = useState(mockProperties[0]);
+  const activePropertyId = usePropertyStore((s) => s.activePropertyId);
+  const setActiveProperty = usePropertyStore((s) => s.setActiveProperty);
+  const properties = Object.values(propertyDatasets).map((d) => d.meta);
+  const activeProperty = propertyDatasets[activePropertyId].meta;
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isPreviewOnly, setIsPreviewOnly] = useState(false);
@@ -60,8 +59,8 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
     setIsPreviewOnly(hasPreviewSession() && !hasDevSession());
   }, []);
 
-  const handleSelectProperty = (prop: typeof mockProperties[0]) => {
-    setActiveProperty(prop);
+  const handleSelectProperty = (prop: PropertyMeta) => {
+    setActiveProperty(prop.id);
     setPropertyOpen(false);
     setBannerMessage(`You are now viewing ${prop.name}`);
   };
@@ -120,7 +119,7 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
                 Select Property Context
               </div>
               <div className="py-1 space-y-0.5">
-                {mockProperties.map((prop) => (
+                {properties.map((prop) => (
                   <button
                     key={prop.id}
                     onClick={() => handleSelectProperty(prop)}
@@ -129,10 +128,10 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
                     <div>
                       <div className="font-medium text-body-sm text-foreground">{prop.name}</div>
                       <div className="text-caption text-muted-foreground font-mono">
-                        {prop.type} • {prop.rooms} Rooms
+                        {prop.type} • {propertyDatasets[prop.id].totalRooms} Rooms
                       </div>
                     </div>
-                    {prop.id === activeProperty.id && (
+                    {prop.id === activePropertyId && (
                       <Check className="w-4 h-4 text-accent" />
                     )}
                   </button>
@@ -165,8 +164,8 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
         {/* Right Action Tools */}
         <div className="flex items-center gap-2.5">
           {/* Agent Activity Indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-caption font-mono text-accent">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-status-info/10 border border-status-info/20 text-caption font-mono text-status-info">
+            <span className="w-2 h-2 rounded-full bg-status-info animate-pulse" />
             <span>AI Agents Active</span>
           </div>
 
