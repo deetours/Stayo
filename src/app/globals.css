@@ -14,7 +14,9 @@
   
   --color-accent: #d97706;
   --color-accent-foreground: #fffbeb;
-  
+
+  --color-vip: #d4af37;
+
   --color-status-ok: #10b981;
   --color-status-warn: #f59e0b;
   --color-status-crit: #ef4444;
