@@ -32,6 +32,15 @@ export default function Home() {
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  useEffect(() => {
     if (prefersReducedMotion) return;
 
     const lenis = new Lenis({
