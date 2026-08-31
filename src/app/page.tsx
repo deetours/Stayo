@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -31,15 +31,22 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Home() {
   const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
+  const useSafeLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : useEffect;
+
+  useSafeLayoutEffect(() => {
     if (typeof window !== "undefined") {
       if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
+        // Bypass strict linting on history mutation
+        Object.assign(window.history, { scrollRestoration: "manual" });
       }
       if (!window.location.hash) {
         window.scrollTo(0, 0);
       }
       ScrollTrigger.clearScrollMemory?.();
+      
+      const handleBeforeUnload = () => window.scrollTo(0, 0);
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }
   }, []);
 
