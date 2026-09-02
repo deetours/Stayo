@@ -60,6 +60,21 @@ export default function ChannelsPage() {
         onFilterChange={setFilter}
         emptyTitle="No channels found"
         emptyDescription="No OTAs match this filter."
+        renderMobileCard={(c) => (
+          <div className="space-y-2 mt-1">
+            <div className="flex items-start justify-between">
+              <div className="font-medium text-body-md text-foreground">{c.name}</div>
+              <span className={`flex items-center gap-1.5 w-fit px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border shrink-0 ${STATUS_COLORS[c.syncStatus]}`}>
+                {c.syncStatus === 'syncing' && <RefreshCw className="w-3 h-3 animate-spin" />}
+                {c.syncStatus}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-body-sm bg-surface-2 p-2 rounded-sm border border-border/50">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Last Sync</span>
+              <span className="font-mono text-foreground">{c.lastSync}</span>
+            </div>
+          </div>
+        )}
         actions={[
           { label: 'Force Sync', onClick: () => toast.success('Sync triggered') },
           { label: 'Configure', onClick: () => toast.success('Opening configuration') },

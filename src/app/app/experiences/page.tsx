@@ -61,6 +61,29 @@ export default function ExperiencesPage() {
         onFilterChange={setFilter}
         emptyTitle="No experience bookings"
         emptyDescription="No bookings match this filter."
+        renderMobileCard={(e) => (
+          <div className="space-y-2 mt-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-medium text-body-md text-foreground">{e.experienceName}</div>
+                <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{e.guestName}</div>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border shrink-0 ${STATUS_COLORS[e.status]}`}>
+                {e.status}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-body-sm bg-surface-2 p-2 rounded-sm border border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Date</span>
+                <span className="font-mono text-foreground">{e.date}</span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Pax</span>
+                <span className="font-mono font-medium text-foreground">{e.pax}</span>
+              </div>
+            </div>
+          </div>
+        )}
         actions={[
           { label: 'Mark Completed', onClick: () => toast.success('Marked as completed') },
           { label: 'Cancel Booking', variant: 'destructive', onClick: () => toast.success('Booking cancelled') }

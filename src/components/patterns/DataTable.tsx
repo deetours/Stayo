@@ -216,8 +216,8 @@ export function DataTable<T extends Record<string, any>>({
         )}
       </div>
 
-      {/* Card list — below sm */}
-      <div className="sm:hidden space-y-2.5">
+      {/* Card list — below md, matching the shell's own mobile/desktop split */}
+      <div className="md:hidden space-y-2.5">
         {sortedData.map((item) => {
           const key = keyExtractor(item);
           const isSelected = selectedKeys.has(key);
@@ -289,7 +289,7 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Main Table */}
-      <div className="hidden sm:block border border-border rounded-md overflow-hidden bg-surface shadow-e0">
+      <div className="hidden md:block border border-border rounded-md overflow-hidden bg-surface shadow-e0">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

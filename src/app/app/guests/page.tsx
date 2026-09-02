@@ -75,6 +75,33 @@ export default function GuestsPage() {
         activeFilter={filter}
         onFilterChange={setFilter}
         onRowClick={openDrawer}
+        renderMobileCard={(g) => (
+          <div className="space-y-2 mt-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-body-md text-foreground">{g.name}</span>
+                  {g.vip && <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-vip/20 text-vip font-bold">VIP</span>}
+                </div>
+                <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{g.email}</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-body-sm bg-surface-2 p-2 rounded-sm border border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Stays</span>
+                <span className="font-mono text-foreground">{g.totalStays}</span>
+              </div>
+              <div className="flex flex-col text-center">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Last Stay</span>
+                <span className="text-foreground">{g.lastStay}</span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Spend</span>
+                <span className="font-mono font-semibold text-foreground">{g.totalSpend}</span>
+              </div>
+            </div>
+          </div>
+        )}
         emptyTitle="No guests found"
         emptyDescription="No guests match this filter yet."
       />

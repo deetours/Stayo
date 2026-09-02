@@ -130,6 +130,31 @@ function FrontDeskPageContent() {
           activeFilter={filter}
           onFilterChange={setFilter}
           onRowClick={openDrawer}
+          renderMobileCard={(r) => (
+            <div className="space-y-2 mt-1">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-medium text-body-md text-foreground">{r.guestName}</div>
+                  <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{r.checkIn} – {r.checkOut}</div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border shrink-0 ${STATUS_COLORS[r.status]}`}>
+                  {r.status}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-body-sm bg-surface-2 p-2 rounded-sm border border-border/50">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Room</span>
+                  <span className="font-mono font-medium text-foreground">{r.roomNumber}</span>
+                </div>
+                <div className="flex flex-col text-right">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Room Status</span>
+                  <span className={`font-medium ${roomReadiness(r.roomNumber, mockRooms).className.split(' ')[0]}`}>
+                    {roomReadiness(r.roomNumber, mockRooms).label}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
           actions={[
             { label: 'Check In', icon: <LogIn className="w-4 h-4" />, onClick: handleCheckIn, variant: 'primary' },
             { label: 'Check Out', icon: <LogOut className="w-4 h-4" />, onClick: handleCheckOut, variant: 'primary' },

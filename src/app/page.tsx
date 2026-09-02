@@ -43,10 +43,21 @@ export default function Home() {
         window.scrollTo(0, 0);
       }
       ScrollTrigger.clearScrollMemory?.();
-      
-      const handleBeforeUnload = () => window.scrollTo(0, 0);
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+
+      // In-app browsers (Instagram, etc.) restore a frozen copy of the page
+      // instead of re-running React effects — "pageshow" fires on that
+      // restore (event.persisted) as well as on a normal load, so it's the
+      // only reliable hook to re-force the scroll position.
+      const handlePageShow = (event: PageTransitionEvent) => {
+        if (!window.location.hash) {
+          window.scrollTo(0, 0);
+        }
+        if (event.persisted) {
+          ScrollTrigger.refresh();
+        }
+      };
+      window.addEventListener("pageshow", handlePageShow);
+      return () => window.removeEventListener("pageshow", handlePageShow);
     }
   }, []);
 
@@ -67,6 +78,16 @@ export default function Home() {
       lenis.scrollTo(0, { immediate: true });
     }
 
+    // Lenis keeps its own internal scroll target — if a bfcache/in-app-browser
+    // restore snaps window.scrollY back to 0 without Lenis knowing, its next
+    // raf tick will animate back to the stale (restored) position.
+    const handlePageShow = () => {
+      if (!window.location.hash) {
+        lenis.scrollTo(0, { immediate: true });
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+
     lenis.on("scroll", ScrollTrigger.update);
 
     const update = (time: number) => {
@@ -77,6 +98,7 @@ export default function Home() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      window.removeEventListener("pageshow", handlePageShow);
       lenis.destroy();
       gsap.ticker.remove(update);
     };

@@ -80,6 +80,33 @@ export default function PaymentsPage() {
         onRowClick={openDrawer}
         emptyTitle="No payments found"
         emptyDescription="No transactions match this filter."
+        renderMobileCard={(p) => (
+          <div className="space-y-2 mt-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-medium text-body-md text-foreground">{p.guestName}</div>
+                <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{p.id}</div>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border shrink-0 ${STATUS_COLORS[p.status]}`}>
+                {p.status}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-body-sm bg-surface-2 p-2 rounded-sm border border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Date</span>
+                <span className="font-mono text-foreground">{p.date}</span>
+              </div>
+              <div className="flex flex-col text-center">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Method</span>
+                <span className="text-foreground">{p.method}</span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Amount</span>
+                <span className="font-mono font-semibold text-foreground">₹{p.amount.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+        )}
         actions={[{ label: 'View Details', onClick: (item) => openDrawer(item) }]}
         bulkActions={[
           { label: 'Issue Refund', variant: 'destructive', onClick: (items) => toast.success(`Refunding ${items.length} payments`) }

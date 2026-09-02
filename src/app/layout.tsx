@@ -35,7 +35,12 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `history.scrollRestoration = "manual"`,
+            __html: `
+history.scrollRestoration = "manual";
+window.addEventListener("pageshow", function () {
+  if (!location.hash) window.scrollTo(0, 0);
+});
+`,
           }}
         />
       </head>

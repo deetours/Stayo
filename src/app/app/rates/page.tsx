@@ -87,6 +87,32 @@ export default function RatesPage() {
         onRowClick={openDrawer}
         emptyTitle="No rates found"
         emptyDescription="No room types match this filter."
+        renderMobileCard={(r) => (
+          <div className="space-y-2 mt-1">
+            <div className="flex items-start justify-between">
+              <div className="font-medium text-body-md text-foreground">{r.roomType}</div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border shrink-0 ${STATUS_COLORS[r.status]}`}>
+                {r.status}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-body-sm bg-surface-2 p-2 rounded-sm border border-border/50">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Base</span>
+                <span className="font-mono text-foreground">₹{r.baseRate.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="flex flex-col text-center">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Active</span>
+                <span className={`font-mono font-semibold ${r.currentRate > r.baseRate ? 'text-accent' : r.currentRate < r.baseRate ? 'text-status-ok' : 'text-foreground'}`}>
+                  ₹{r.currentRate.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Occ.</span>
+                <span className="font-mono font-medium text-foreground">{r.occupancy}%</span>
+              </div>
+            </div>
+          </div>
+        )}
         actions={[{ label: 'Edit Pricing', onClick: (item) => openDrawer(item) }]}
       />
 
