@@ -24,6 +24,7 @@ export interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
   keyExtractor: (item: T) => string;
+  renderMobileCard?: (item: T) => React.ReactNode;
   filterChips?: FilterChip[];
   activeFilter?: string;
   onFilterChange?: (filterId: string) => void;
@@ -55,6 +56,7 @@ export function DataTable<T extends Record<string, any>>({
   data,
   columns,
   keyExtractor,
+  renderMobileCard,
   filterChips,
   activeFilter,
   onFilterChange,
@@ -85,14 +87,14 @@ export function DataTable<T extends Record<string, any>>({
     return (
       <div>
         {filterChips && filterChips.length > 0 && (
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 hide-scrollbar">
             {filterChips.map((chip) => {
               const isActive = chip.id === activeFilter;
               return (
                 <button
                   key={chip.id}
                   onClick={() => onFilterChange?.(chip.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-medium uppercase tracking-wider transition-all duration-fast cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-medium uppercase tracking-wider transition-all duration-fast cursor-pointer whitespace-nowrap shrink-0 ${
                     isActive
                       ? 'bg-accent/15 text-accent border border-accent/30'
                       : 'bg-surface text-muted-foreground border border-border hover:bg-surface-2 hover:text-foreground'
@@ -168,14 +170,14 @@ export function DataTable<T extends Record<string, any>>({
       {/* Top Filter Chips and Bulk Actions Bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {filterChips && filterChips.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
             {filterChips.map((chip) => {
               const isActive = chip.id === activeFilter;
               return (
                 <button
                   key={chip.id}
                   onClick={() => onFilterChange?.(chip.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-medium uppercase tracking-wider transition-all duration-fast cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-medium uppercase tracking-wider transition-all duration-fast cursor-pointer whitespace-nowrap shrink-0 ${
                     isActive
                       ? 'bg-accent/15 text-accent border border-accent/30'
                       : 'bg-surface text-muted-foreground border border-border hover:bg-surface-2 hover:text-foreground'
@@ -214,8 +216,7 @@ export function DataTable<T extends Record<string, any>>({
         )}
       </div>
 
-      {/* Card list — below sm, where a horizontally-scrolled table and
-          hover-only row actions are both unreachable by touch. */}
+      {/* Card list — below sm */}
       <div className="sm:hidden space-y-2.5">
         {sortedData.map((item) => {
           const key = keyExtractor(item);
@@ -233,7 +234,7 @@ export function DataTable<T extends Record<string, any>>({
               <div className="flex items-center justify-between gap-2">
                 <div
                   onClick={(e) => toggleSelectRow(key, e)}
-                  className={`w-5 h-5 rounded-sm border flex items-center justify-center cursor-pointer transition-colors ${
+                  className={`w-5 h-5 rounded-sm border flex items-center justify-center cursor-pointer transition-colors shrink-0 ${
                     isSelected
                       ? 'bg-accent border-accent text-accent-foreground'
                       : 'border-muted-foreground/30'
@@ -242,8 +243,13 @@ export function DataTable<T extends Record<string, any>>({
                   {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
                 </div>
 
+                <div className="flex-1 min-w-0">
+                  {/* We inject custom mobile rendering here, else we list properties */}
+                  {renderMobileCard ? null : <div className="text-body-sm font-medium truncate">{item[columns[0]?.key]}</div>}
+                </div>
+
                 {actions && actions.length > 0 && (
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                     {actions.map((act, aIdx) => (
                       <Tooltip key={aIdx}>
                         <TooltipTrigger asChild>
@@ -261,18 +267,22 @@ export function DataTable<T extends Record<string, any>>({
                 )}
               </div>
 
-              <div className="divide-y divide-border/50">
-                {columns.map((col) => (
-                  <div key={col.key} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
-                    <span className="text-caption text-muted-foreground uppercase tracking-wide shrink-0">
-                      {col.header}
-                    </span>
-                    <span className="text-body-sm text-foreground text-right truncate min-w-0">
-                      {col.render ? col.render(item) : item[col.key]}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {renderMobileCard ? (
+                <div>{renderMobileCard(item)}</div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {columns.slice(1).map((col) => (
+                    <div key={col.key} className="flex items-center justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
+                      <span className="text-caption text-muted-foreground uppercase tracking-wide shrink-0">
+                        {col.header}
+                      </span>
+                      <span className="text-body-sm text-foreground text-right truncate min-w-0">
+                        {col.render ? col.render(item) : item[col.key]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}

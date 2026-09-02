@@ -323,11 +323,11 @@ function DashboardPageContent() {
       </div>
 
       {/* 2. KPI Strip (5 Numbers Max - Ticking numbers) */}
-      <div ref={kpiStripRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <div ref={kpiStripRef} className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3.5 hide-scrollbar">
         <SmartLink
           href="/app/calendar"
           data-kpi-card
-          className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
+          className="min-w-[150px] snap-start p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group flex-1"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Occupancy
@@ -343,7 +343,7 @@ function DashboardPageContent() {
         <SmartLink
           href="/app/reservations?filter=arrivals"
           data-kpi-card
-          className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
+          className="min-w-[150px] snap-start p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group flex-1"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Arrivals Today
@@ -359,7 +359,7 @@ function DashboardPageContent() {
         <SmartLink
           href="/app/reservations?filter=departures"
           data-kpi-card
-          className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
+          className="min-w-[150px] snap-start p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group flex-1"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Departures Today
@@ -375,7 +375,7 @@ function DashboardPageContent() {
         <SmartLink
           href="/app/guests"
           data-kpi-card
-          className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group"
+          className="min-w-[150px] snap-start p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group flex-1"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             In-House Guests
@@ -391,7 +391,7 @@ function DashboardPageContent() {
         <SmartLink
           href="/app/revenue"
           data-kpi-card
-          className="p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group col-span-2 sm:col-span-1"
+          className="min-w-[150px] snap-start p-4 rounded-md bg-surface border border-border hover:border-muted-foreground/40 transition-all shadow-e0 group sm:col-span-1 flex-1"
         >
           <div className="text-caption uppercase tracking-wider text-muted-foreground font-medium">
             Revenue Today
@@ -408,7 +408,8 @@ function DashboardPageContent() {
       </div>
 
       {/* Two Column Operational Hub: Left = Needs Attention | Right = StayO AI & Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Used flex-col-reverse on mobile so Room Status appears before Needs Attention */}
+      <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 gap-6">
         {/* LEFT: Needs Attention Feed (Section 3) */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-center justify-between">
@@ -532,24 +533,24 @@ function DashboardPageContent() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <Link href="/app/rooms?status=available" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 text-center pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-5 hide-scrollbar">
+              <Link href="/app/rooms?status=available" className="min-w-[76px] snap-start p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors flex-1">
                 <div className="font-mono font-bold text-body-lg text-status-ok">{roomStatusCounts.available}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Available</div>
               </Link>
-              <Link href="/app/rooms?status=occupied" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
+              <Link href="/app/rooms?status=occupied" className="min-w-[76px] snap-start p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors flex-1">
                 <div className="font-mono font-bold text-body-lg text-foreground">{roomStatusCounts.occupied}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Occupied</div>
               </Link>
-              <Link href="/app/rooms?status=dirty" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
+              <Link href="/app/rooms?status=dirty" className="min-w-[76px] snap-start p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors flex-1">
                 <div className="font-mono font-bold text-body-lg text-status-warn">{roomStatusCounts.dirty}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Dirty</div>
               </Link>
-              <Link href="/app/rooms?status=cleaning" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
+              <Link href="/app/rooms?status=cleaning" className="min-w-[76px] snap-start p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors flex-1">
                 <div className="font-mono font-bold text-body-lg text-status-info">{roomStatusCounts.cleaning}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Cleaning</div>
               </Link>
-              <Link href="/app/rooms?status=maintenance" className="p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors">
+              <Link href="/app/rooms?status=maintenance" className="min-w-[76px] snap-start p-2 bg-surface-2 rounded-sm hover:bg-border transition-colors flex-1">
                 <div className="font-mono font-bold text-body-lg text-status-crit">{roomStatusCounts.blocked}</div>
                 <div className="text-[10px] text-muted-foreground uppercase">Blocked</div>
               </Link>

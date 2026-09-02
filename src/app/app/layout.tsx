@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Toaster } from 'sonner';
 import { AppSidebar } from '@/components/shell/AppSidebar';
 import { AppTopBar } from '@/components/shell/AppTopBar';
+import { MobileBottomNav } from '@/components/shell/MobileBottomNav';
 import { CommandPalette } from '@/components/shell/CommandPalette';
 import { AskStayOPanel } from '@/components/shell/AskStayOPanel';
 import { useUIStore } from '@/lib/store';
@@ -33,12 +34,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         />
 
         {/* Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-background">
+        {/* Reduced padding on mobile and added bottom padding to clear the MobileBottomNav */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8 bg-background">
           <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
 
       {/* Global Modals & Panels */}
       <CommandPalette open={cmdKOpen} onOpenChange={setCmdKOpen} />

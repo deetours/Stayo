@@ -137,7 +137,7 @@ export function KanbanBoard({
   };
 
   return (
-    <div ref={containerRef} className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr gap-4 w-full overflow-x-auto pb-4">
+    <div ref={containerRef} className="flex overflow-x-auto snap-x snap-mandatory md:snap-none md:grid md:grid-flow-col md:auto-cols-fr gap-4 w-full pb-4 hide-scrollbar">
       {columns.map((col) => {
         const colItems = items.filter((item) => item.status === col.id);
         const isOver = dragOverColId === col.id;
@@ -150,7 +150,7 @@ export function KanbanBoard({
             onDragOver={(e) => handleDragOver(e, col.id)}
             onDragLeave={handleDragLeave}
             onDrop={() => handleDrop(col.id)}
-            className={`flex flex-col min-w-[260px] bg-surface rounded-md border transition-all duration-fast ${
+            className={`flex flex-col min-w-[85vw] md:min-w-[260px] snap-center shrink-0 bg-surface rounded-md border transition-all duration-fast ${
               isOver
                 ? 'border-accent bg-surface/80'
                 : isHighlighted

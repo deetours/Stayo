@@ -119,4 +119,10 @@ html.lenis, html.lenis body { height: auto; }
   }
 }
 
-
+@utility hide-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

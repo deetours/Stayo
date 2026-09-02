@@ -95,20 +95,7 @@ export function AppTopBar({ onOpenCmdK, onOpenAskStayO }: AppTopBarProps) {
         </div>
       )}
       <header className="h-14 bg-surface border-b border-border px-4 flex items-center justify-between shrink-0 z-20 gap-2">
-        {/* Mobile: Sidebar drawer trigger */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileSidebarOpen(true)}
-              className="md:hidden -ml-1 shrink-0"
-            >
-              <Menu className="w-4.5 h-4.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Open navigation</TooltipContent>
-        </Tooltip>
+
 
         {/* Left: Property Switcher */}
         <DropdownMenu>
